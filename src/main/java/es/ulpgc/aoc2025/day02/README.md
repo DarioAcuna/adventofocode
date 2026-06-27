@@ -359,7 +359,25 @@ En la solución del Día 2 se utilizan los siguientes fundamentos de diseño:
 * Strategy.
 
 ---
+## Patrones no aplicados
 
+Aunque algunos patrones aparecen en los materiales teóricos, no todos son necesarios en esta solución.
+
+No se aplica `Singleton`, porque no hay ninguna clase que necesite garantizar una única instancia global.
+
+No se aplica `Factory Method`, porque la creación de objetos es simple y directa. Los solvers crean directamente sus dependencias mediante constructores.
+
+No se aplica `Adapter`, porque no se está adaptando una librería externa ni una interfaz incompatible con el diseño del proyecto.
+
+No se aplica `Decorator`, porque no se añaden responsabilidades dinámicamente a objetos existentes. Las clases tienen responsabilidades fijas y bien definidas.
+
+No se aplica `Observer`, porque no hay objetos observadores suscritos a cambios de estado de otros objetos.
+
+No se aplica `Template Method`, aunque las dos partes tienen una estructura parecida. Ambos solvers parsean el input, generan IDs inválidos y suman el resultado, pero no existe una clase abstracta común que defina el esqueleto del algoritmo.
+
+Esta ausencia también es positiva, porque aplicar patrones sin necesidad haría el código más complejo sin aportar beneficios reales.
+
+---
 # Conclusión
 
 La solución del Día 2 está organizada en clases con responsabilidades bien separadas.
