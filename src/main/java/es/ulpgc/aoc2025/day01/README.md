@@ -1,592 +1,335 @@
-# Advent of Code 2025 - Day 1: Secret Entrance
+## Día 1: Secret Entrance
 
-Este proyecto contiene la solución para el **Día 1** del Advent of Code 2025: **Secret Entrance**.
+En el primer día del Advent of Code 2025, el problema plantea una situación en la que los elfos han descubierto una entrada secreta a la base del Polo Norte. Para poder acceder, es necesario obtener la contraseña correcta de una caja fuerte con un dial circular.
 
-El problema consiste en descifrar la contraseña de una caja fuerte que funciona mediante un dial circular numerado del `0` al `99`. El dial comienza apuntando a la posición `50` y recibe una secuencia de rotaciones hacia la izquierda (`L`) o hacia la derecha (`R`).
+El dial contiene los números del `0` al `99` y comienza apuntando al número `50`. El documento de entrada contiene una lista de rotaciones, una por línea. Cada rotación empieza con una letra:
 
-Cada día de Advent of Code contiene dos partes. En este proyecto, ambas partes están separadas en solvers independientes, pero comparten las clases comunes que representan el dominio del problema.
+* `L`: girar hacia la izquierda, es decir, hacia números menores.
+* `R`: girar hacia la derecha, es decir, hacia números mayores.
 
----
+Después de la letra aparece un número que indica cuántos clics debe girarse el dial. Como el dial es circular, al girar hacia la izquierda desde `0` se pasa a `99`, y al girar hacia la derecha desde `99` se vuelve a `0`.
 
-## Descripción del problema
+### Parte 1
 
-La entrada del problema contiene una lista de rotaciones, una por línea.
+En la primera parte, el objetivo consiste en seguir todas las rotaciones del documento y contar cuántas veces el dial termina apuntando al número `0` después de completar una rotación.
 
-Ejemplo:
+Es importante destacar que solo se cuenta el estado final de cada instrucción, no los números por los que pasa el dial durante el giro. Por tanto, si una rotación pasa por el `0` pero termina en otro número, no se cuenta en esta parte.
+
+La contraseña de la primera parte es el número total de rotaciones que dejan el dial apuntando a `0`.
+
+### Parte 2
+
+En la segunda parte cambia la forma de calcular la contraseña. Ahora no solo se cuentan las veces que el dial termina en `0`, sino todas las veces que cualquier clic individual hace que el dial apunte a `0`, incluso si ocurre durante una rotación.
+
+Esto significa que, si una rotación es suficientemente larga, puede pasar por el `0` varias veces. Por ejemplo, una rotación de `R1000` desde el número `50` haría que el dial apuntara a `0` diez veces antes de volver a terminar en `50`.
+
+Por tanto, en esta parte es necesario analizar cada rotación teniendo en cuenta todos los cruces por el número `0`, no únicamente la posición final del dial.
+
+La contraseña de la segunda parte es el número total de veces que el dial apunta a `0` durante todos los clics realizados.
+
+
+## Clases del paquete `common`
+
+El paquete `common` contiene las clases comunes utilizadas por las dos partes del Día 1. Su objetivo es representar el dominio principal del problema: un dial circular, sus direcciones de giro, las rotaciones indicadas en el input y la conversión de texto a objetos del programa.
+
+### `CircularDial`
+
+La clase `CircularDial` representa el dial circular de la caja fuerte. Es la clase principal del dominio, ya que mantiene la posición actual del dial y contiene la lógica necesaria para girarlo.
+
+El dial tiene un tamaño fijo de `100` posiciones, numeradas del `0` al `99`. Al ser circular, cuando se supera el límite superior o inferior, la posición vuelve a entrar dentro del rango válido usando aritmética modular.
+
+Sus responsabilidades principales son:
+
+* Guardar la posición actual del dial.
+* Validar que la posición inicial esté entre `0` y `99`.
+* Aplicar una rotación hacia la izquierda o hacia la derecha.
+* Calcular la nueva posición del dial después de una rotación.
+* Contar cuántas veces el dial apunta a `0` durante una rotación, necesario para resolver la segunda parte del problema.
+
+Esta clase es mutable, ya que su atributo `position` cambia cada vez que se aplica una rotación.
+
+### `Direction`
+
+El enum `Direction` representa la dirección en la que puede girar el dial.
+
+Tiene dos valores posibles:
+
+* `LEFT`: representa un giro hacia la izquierda, es decir, hacia números menores.
+* `RIGHT`: representa un giro hacia la derecha, es decir, hacia números mayores.
+
+Su propósito es evitar trabajar directamente con caracteres como `'L'` o `'R'` dentro de la lógica del programa. De esta forma, el código es más expresivo y seguro, ya que las direcciones válidas quedan limitadas a los valores definidos en el enum.
+
+### `Rotation`
+
+El record `Rotation` representa una instrucción de rotación del dial.
+
+Cada rotación está formada por dos datos:
+
+* `direction`: la dirección del giro.
+* `distance`: el número de clics que debe moverse el dial.
+
+Esta clase se encarga de agrupar ambos valores en un único objeto, haciendo que el código sea más claro. En lugar de pasar por separado una dirección y una distancia, se trabaja con una rotación completa.
+
+Además, valida que la dirección no sea `null` y que la distancia no sea negativa. Esto evita crear rotaciones inválidas y ayuda a mantener la consistencia del programa.
+
+Al estar definida como `record`, es una clase inmutable: una vez creada una rotación, sus valores no cambian.
+
+### `RotationParser`
+
+La clase `RotationParser` se encarga de transformar cada línea del archivo de entrada en un objeto `Rotation`.
+
+El input del problema contiene líneas con el formato:
 
 ```text
 L68
-L30
 R48
 L5
-R60
 ```
 
-Cada instrucción tiene dos elementos:
+Esta clase interpreta el primer carácter de cada línea como la dirección del giro y el resto de la cadena como la distancia. Por ejemplo, la línea `L68` se convierte en una rotación hacia la izquierda con distancia `68`.
 
-* una dirección:
+Sus responsabilidades principales son:
 
-    * `L`: izquierda, hacia números menores;
-    * `R`: derecha, hacia números mayores;
-* una distancia, que indica cuántos clicks gira el dial.
+* Validar que la línea no sea nula ni esté vacía.
+* Leer el carácter inicial de la instrucción.
+* Convertir `L` en `Direction.LEFT`.
+* Convertir `R` en `Direction.RIGHT`.
+* Convertir el resto de la línea en un número entero.
+* Crear y devolver un objeto `Rotation`.
 
-Como el dial es circular:
+Esta clase separa la lógica de parseo de la lógica del dial. Gracias a eso, `CircularDial` no necesita saber cómo viene escrito el input, sino que solo trabaja con objetos `Rotation` ya construidos.
 
-* girar a la izquierda desde `0` lleva a `99`;
-* girar a la derecha desde `99` lleva a `0`.
+### Resumen general
 
----
+En conjunto, estas clases separan claramente las responsabilidades del problema:
 
-## Parte 1
+* `CircularDial` modela el estado y comportamiento del dial.
+* `Direction` define los sentidos posibles de giro.
+* `Rotation` representa una instrucción ya interpretada.
+* `RotationParser` convierte el texto del input en objetos del dominio.
 
-En la primera parte se debe contar cuántas veces el dial **termina apuntando a `0`** después de completar una rotación.
+Esta separación hace que el código sea más claro, más fácil de probar y más mantenible, ya que cada clase tiene una responsabilidad concreta dentro de la solución.
 
-Por ejemplo, si una rotación termina exactamente en la posición `0`, se incrementa el contador de la contraseña.
+## Clases de los paquetes `day01.part1` y `day01.part2`
 
-La respuesta conocida para el input real de la parte 1 es:
+Los paquetes `day01.part1` y `day01.part2` contienen las clases encargadas de resolver cada una de las dos partes del Día 1. Ambas clases implementan la interfaz `PuzzleSolver`, por lo que siguen una misma estructura: reciben una lista de líneas del input y devuelven el resultado numérico de la solución.
 
-```text
-964
-```
-
----
-
-## Parte 2
-
-En la segunda parte cambia el criterio de conteo.
-
-Ahora se debe contar cuántas veces **cualquier click individual** hace que el dial apunte a `0`, aunque ocurra durante una rotación y no necesariamente al final.
-
-Por ejemplo, si el dial empieza en `50`, una única rotación:
-
-```text
-R1000
-```
-
-hace que el dial pase por `0` diez veces antes de volver a `50`.
-
-La solución de la parte 2 no simula cada click individualmente. En su lugar, calcula matemáticamente cuántas veces se alcanza el `0` durante cada rotación.
+Estas clases no modelan directamente el dial ni las rotaciones, sino que coordinan el uso de las clases del paquete `day01.common`.
 
 ---
 
-## Diseño y arquitectura
+### `Day01Part1Solver`
 
-La solución está organizada siguiendo una estructura modular:
+La clase `Day01Part1Solver` se encarga de resolver la primera parte del problema.
 
-```text
-day01
-├── Day01Main.java
-├── common
-├── part1
-└── part2
-```
+Su responsabilidad principal es calcular cuántas veces el dial termina apuntando al número `0` después de completar una rotación.
 
-El objetivo de esta estructura es separar claramente:
+Para ello, realiza los siguientes pasos:
 
-* el punto de entrada del día;
-* las clases comunes del dominio;
-* la solución de la parte 1;
-* la solución de la parte 2.
+1. Crea un `CircularDial` con la posición inicial `50`.
+2. Recorre todas las líneas del input.
+3. Usa `RotationParser` para convertir cada línea en un objeto `Rotation`.
+4. Aplica la rotación al dial mediante el método `rotate`.
+5. Comprueba si la posición final del dial es `0`.
+6. Si el dial termina en `0`, incrementa el contador de la contraseña.
 
-De esta manera, cada parte puede evolucionar de forma independiente. Si una clase común necesitara modificarse de forma incompatible para la parte 2, debería crearse una versión específica dentro de `part2`, manteniendo intacta la solución de la parte 1.
+Esta clase representa la lógica específica de la primera parte: solo cuenta el `0` cuando aparece como posición final tras una rotación.
+
+Por ejemplo, si durante una rotación el dial pasa por `0` pero termina en otro número, esa aparición no se cuenta en esta parte.
 
 ---
 
-## Principios aplicados
+### `Day01Part2Solver`
 
-### Single Responsibility Principle, SRP
+La clase `Day01Part2Solver` se encarga de resolver la segunda parte del problema.
 
-Cada clase tiene una única responsabilidad:
+Su responsabilidad principal es calcular cuántas veces el dial apunta al número `0` durante todos los clics realizados, no solo al finalizar cada rotación.
 
-* `Day01Main`: ejecuta el día 1 y muestra los resultados.
-* `Day01Part1Solver`: resuelve únicamente la parte 1.
-* `Day01Part2Solver`: resuelve únicamente la parte 2.
-* `RotationParser`: transforma una línea del input en una rotación.
-* `Rotation`: representa una instrucción de giro.
-* `Direction`: representa la dirección de una rotación.
-* `CircularDial`: encapsula la lógica del dial circular.
-* `PuzzleSolver`: define el contrato común de los solvers.
+Para ello, realiza los siguientes pasos:
 
-Esta separación permite que cada clase tenga una razón clara para existir y una única razón principal para cambiar.
+1. Crea un `CircularDial` con la posición inicial `50`.
+2. Recorre todas las líneas del input.
+3. Usa `RotationParser` para convertir cada línea en un objeto `Rotation`.
+4. Llama al método `countZeroClicksDuring` del dial.
+5. Suma al resultado total el número de veces que esa rotación hace que el dial apunte a `0`.
 
----
+A diferencia de la primera parte, esta clase no comprueba únicamente la posición final del dial. En su lugar, delega en `CircularDial` el cálculo de cuántas veces se cruza por el número `0` durante la rotación completa.
 
-### Open/Closed Principle, OCP
-
-El proyecto está preparado para ser extendido sin modificar el código existente.
-
-Por ejemplo, para añadir el día 2 se puede crear una estructura paralela:
-
-```text
-day02
-├── Day02Main.java
-├── common
-├── part1
-└── part2
-```
-
-Así, el código del día 1 no necesita modificarse al añadir nuevos días.
-
-También se puede añadir una nueva implementación de `PuzzleSolver` sin cambiar la interfaz común.
+Esto permite resolver correctamente casos donde una rotación larga puede pasar varias veces por `0`.
 
 ---
 
-### Dependency Inversion Principle, DIP
+### Diferencia principal entre ambas clases
 
-Los solvers se utilizan a través de la abstracción `PuzzleSolver`.
+La diferencia entre `Day01Part1Solver` y `Day01Part2Solver` está en qué se considera una aparición válida del número `0`.
 
-Ejemplo:
+En la primera parte, solo se cuenta si el dial termina en `0` después de ejecutar una instrucción completa.
+
+En la segunda parte, se cuenta cada vez que un clic individual deja el dial apuntando a `0`, aunque la rotación termine en otra posición.
+
+Por tanto:
+
+* `Day01Part1Solver` cuenta posiciones finales.
+* `Day01Part2Solver` cuenta cruces por `0` durante el movimiento completo.
+
+---
+
+## Clase del paquete `day01`
+
+El paquete `day01` contiene la clase principal del Día 1. Esta clase actúa como punto de entrada para ejecutar la solución completa del ejercicio.
+
+### `Day01Main`
+
+La clase `Day01Main` es la encargada de iniciar la ejecución del Día 1.
+
+Su responsabilidad principal no es resolver directamente el problema, sino coordinar los elementos necesarios para ejecutar ambas partes. Para ello, lee el archivo de entrada, crea los solvers correspondientes y muestra por consola los resultados obtenidos.
+
+El método `main` realiza los siguientes pasos:
+
+1. Lee todas las líneas del archivo `src/main/resources/day01/input.txt`.
+2. Crea una instancia de `Day01Part1Solver`.
+3. Crea una instancia de `Day01Part2Solver`.
+4. Ejecuta el método `solve` de cada solver usando las líneas del input.
+5. Guarda los resultados de la parte 1 y de la parte 2.
+6. Imprime ambos resultados por consola.
+
+Esta clase utiliza la interfaz `PuzzleSolver` para referenciar los solvers de ambas partes. Gracias a esto, el código no depende directamente del tipo concreto a la hora de ejecutar la solución, sino de una abstracción común.
 
 ```java
 PuzzleSolver part1Solver = new Day01Part1Solver();
 PuzzleSolver part2Solver = new Day01Part2Solver();
 ```
 
-Esto permite que el código que ejecuta los solvers no dependa directamente de los detalles internos de cada implementación.
+Esto permite que ambas partes sigan la misma estructura: reciben una lista de líneas y devuelven un resultado numérico.
 
----
+### Propósito dentro del proyecto
 
-### DRY
+`Day01Main` funciona como clase lanzadora del Día 1. Es decir, conecta el input real del problema con las clases que contienen la lógica de resolución.
 
-La lógica común del día 1 se encuentra en el paquete:
+Mientras que las clases `Day01Part1Solver` y `Day01Part2Solver` se encargan de resolver cada parte, `Day01Main` se encarga de preparar la ejecución y mostrar los resultados.
 
-```text
-es.ulpgc.aoc2025.day01.common
-```
+Por tanto, sus responsabilidades son:
 
-En este paquete se colocan las clases que son compartidas por ambas partes:
+* Localizar y leer el archivo de entrada.
+* Instanciar los solvers de ambas partes.
+* Ejecutar las soluciones.
+* Mostrar los resultados finales.
 
-* `CircularDial`
-* `Direction`
-* `Rotation`
-* `RotationParser`
+### Resumen general
 
-De esta forma se evita duplicar código entre la parte 1 y la parte 2.
+La clase `Day01Main` separa la ejecución del programa de la lógica del problema. No contiene reglas específicas sobre cómo se mueve el dial ni cómo se calcula la contraseña. Esa lógica queda delegada en los solvers y en las clases del paquete `day01.common`.
 
----
+Gracias a esta separación, el código queda mejor organizado:
 
-### Código expresivo
+* `Day01Main` ejecuta el programa.
+* `Day01Part1Solver` resuelve la primera parte.
+* `Day01Part2Solver` resuelve la segunda parte.
+* Las clases de `day01.common` modelan el dominio del problema.
 
-El código intenta representar directamente los conceptos del problema.
+Esta estructura hace que el proyecto sea más claro, modular y fácil de mantener.
 
-Por ejemplo, en lugar de trabajar únicamente con caracteres sueltos como `'L'` o `'R'`, se utiliza el enum `Direction`.
+## Interfaz común del proyecto
 
-También se utiliza un `record` para representar una rotación, ya que una rotación es simplemente un dato inmutable formado por una dirección y una distancia.
+Además de las clases específicas del Día 1, el proyecto incluye una interfaz común ubicada en el paquete `aoc2025.common`. Esta interfaz se utiliza como base para todos los días del Advent of Code.
 
----
+### `PuzzleSolver`
 
-## Estructura del proyecto
+La interfaz `PuzzleSolver` define el contrato que deben cumplir todas las clases encargadas de resolver un puzzle.
 
-```text
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day01
-│   │                   ├── Day01Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── CircularDial.java
-│   │                   │   ├── Direction.java
-│   │                   │   ├── Rotation.java
-│   │                   │   └── RotationParser.java
-│   │                   │
-│   │                   ├── part1
-│   │                   │   └── Day01Part1Solver.java
-│   │                   │
-│   │                   └── part2
-│   │                       └── Day01Part2Solver.java
-│   │
-│   └── resources
-│       └── day01
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day01
-                        ├── part1
-                        │   └── Day01Part1SolverTest.java
-                        └── part2
-                            └── Day01Part2SolverTest.java
-```
-
----
-
-## Paquetes principales
-
-### `es.ulpgc.aoc2025.common`
-
-Contiene código común al proyecto completo.
-
-Actualmente contiene:
-
-```text
-PuzzleSolver.java
-```
-
-Esta interfaz define el contrato que deben cumplir todos los solvers:
+Contiene un único método:
 
 ```java
 long solve(List<String> lines);
 ```
 
----
+Este método recibe como parámetro una lista de líneas de texto, que representa el contenido del archivo de entrada del problema, y devuelve un valor numérico de tipo `long` con el resultado de la solución.
 
-### `es.ulpgc.aoc2025.day01`
+Su propósito principal es unificar la forma en la que se resuelven los distintos ejercicios del proyecto. Gracias a esta interfaz, todos los solvers siguen la misma estructura, independientemente del día o de la parte que estén resolviendo.
 
-Contiene el punto de entrada específico del día 1:
-
-```text
-Day01Main.java
-```
-
-Esta clase se encarga de:
-
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. crear el solver de la parte 2;
-4. ejecutar ambos solvers;
-5. mostrar los resultados por consola.
-
----
-
-### `es.ulpgc.aoc2025.day01.common`
-
-Contiene las clases comunes del dominio del día 1.
-
-Estas clases son compartidas por la parte 1 y la parte 2 porque representan conceptos comunes del problema.
-
----
-
-## Clases principales
-
-### `Direction`
-
-Representa la dirección de una rotación.
+Por ejemplo, en el Día 1, tanto `Day01Part1Solver` como `Day01Part2Solver` implementan esta interfaz. Esto permite tratarlos de forma común desde `Day01Main`, usando el tipo `PuzzleSolver` en lugar de depender directamente de las clases concretas.
 
 ```java
-public enum Direction {
-    LEFT,
-    RIGHT
-}
+PuzzleSolver part1Solver = new Day01Part1Solver();
+PuzzleSolver part2Solver = new Day01Part2Solver();
 ```
 
-Se usa un `enum` porque las direcciones posibles son cerradas y conocidas: izquierda o derecha.
+### Propósito dentro del proyecto
 
----
-
-### `Rotation`
-
-Representa una instrucción de giro del dial.
-
-Se ha implementado como `record` porque es un objeto de datos inmutable.
-
-```java
-package es.ulpgc.aoc2025.day01.common;
-
-public record Rotation(Direction direction, int distance) {
-
-    public Rotation {
-        if (direction == null) {
-            throw new IllegalArgumentException("Direction cannot be null");
-        }
-        if (distance < 0) {
-            throw new IllegalArgumentException("Distance cannot be negative");
-        }
-    }
-}
-```
-
-Una rotación contiene:
-
-* `direction`: dirección del giro;
-* `distance`: número de clicks.
-
-El uso de `record` aporta varias ventajas:
-
-* genera automáticamente los métodos `direction()` y `distance()`;
-* genera automáticamente `equals()`, `hashCode()` y `toString()`;
-* expresa que la clase representa datos inmutables;
-* reduce código repetitivo;
-* mejora la legibilidad.
-
-Además, el constructor compacto valida que:
-
-* la dirección no sea `null`;
-* la distancia no sea negativa.
-
----
-
-### `RotationParser`
-
-Convierte una línea del input en una instancia de `Rotation`.
-
-Ejemplo:
-
-```text
-L68
-```
-
-se convierte en:
-
-```java
-new Rotation(Direction.LEFT, 68)
-```
-
-Su responsabilidad es únicamente interpretar el formato textual de entrada.
-
----
-
-### `CircularDial`
-
-Representa el dial circular de la caja fuerte.
+La interfaz `PuzzleSolver` actúa como una abstracción común para todos los resolutores del Advent of Code.
 
 Sus responsabilidades son:
 
-* almacenar la posición actual;
-* aplicar una rotación;
-* calcular cuántas veces se alcanza el `0` durante una rotación.
+* Definir una estructura común para resolver puzzles.
+* Separar la ejecución del programa de la implementación concreta de cada solución.
+* Permitir que cada parte de cada día tenga su propia clase solver.
+* Facilitar la reutilización de código en las clases principales de cada día.
+* Hacer que el proyecto sea más escalable y organizado.
 
-Esta clase encapsula la lógica del dominio principal del problema.
+Gracias a esta interfaz, añadir nuevos días o nuevas partes resulta más sencillo, ya que basta con crear una nueva clase que implemente `PuzzleSolver` y defina su propia lógica dentro del método `solve`.
+
+### Resumen general
+
+`PuzzleSolver` no resuelve ningún problema por sí misma. Su función es definir un contrato común que todas las soluciones deben respetar.
+
+Esto mejora la organización del proyecto porque permite que todos los días del Advent of Code sigan una misma estructura:
+
+* Una clase principal que lee el input y ejecuta los solvers.
+* Una clase solver para la parte 1.
+* Una clase solver para la parte 2.
+* Una interfaz común que garantiza que todos los solvers puedan ejecutarse de la misma manera.
+
+En resumen, `PuzzleSolver` aporta abstracción, uniformidad y escalabilidad al proyecto.
+
+## Fundamentos, principios y patrones de diseño aplicados
+
+En la solución del Día 1 se aplican varios fundamentos y principios de diseño orientados a conseguir un código claro, modular, mantenible y fácil de extender. Aunque el problema es pequeño, la estructura elegida separa correctamente las responsabilidades entre las clases del dominio, los solvers de cada parte y la clase principal de ejecución.
+
+---
+## Fundamentos de diseño utilizados
+
+En la solución del Día 1 se utilizan los siguientes fundamentos de diseño:
+
+* Alta cohesión.
+* Bajo acoplamiento.
+* Modularidad.
+* Código expresivo.
+* Abstracción.
+* Encapsulación.
+* Diseño por contrato.
+
+## Principios de diseño aplicados
+
+En la solución del Día 1 se aplican los siguientes principios de diseño:
+
+* Principio de Responsabilidad Única, SRP.
+* Principio Abierto/Cerrado, OCP.
+* Principio de Sustitución de Liskov, LSP.
+* Principio de Segregación de Interfaces, ISP.
+* Principio de Inversión de Dependencias, DIP.
+* Composición sobre herencia.
+* Principio DRY.
+* Ley de Demeter.
+* Principio YAGNI.
+* Principio de mínima sorpresa.
+
+## Patrones de diseño aplicados
+En la solución del Día 1 se utilizan los siguientes patrones de diseño:
+
+* Iterator.
+* Strategy.
+
+## Patrones no aplicados
+
+No se aplica `Singleton`, porque no hay ninguna clase que necesite garantizar una única instancia global.
+
+No se aplica `Factory Method`, porque los objetos se crean directamente con sus constructores y no hay una lógica compleja de creación.
+
+No se aplica `Adapter`, porque no se está adaptando una interfaz externa o incompatible.
+
+No se aplica `Decorator`, porque no se añaden responsabilidades dinámicas a objetos existentes.
+
+No se aplica `Observer`, porque no hay objetos suscritos a cambios de estado de otros objetos.
 
 ---
 
-### `Day01Part1Solver`
 
-Resuelve la primera parte del problema.
-
-Su algoritmo es:
-
-1. crear el dial en la posición inicial `50`;
-2. leer cada instrucción;
-3. convertirla en una rotación;
-4. aplicar la rotación al dial;
-5. comprobar si la posición final es `0`;
-6. incrementar la contraseña si corresponde.
-
-Esta parte solo tiene en cuenta la posición final después de cada rotación.
-
----
-
-### `Day01Part2Solver`
-
-Resuelve la segunda parte del problema.
-
-Su algoritmo es:
-
-1. crear el dial en la posición inicial `50`;
-2. leer cada instrucción;
-3. convertirla en una rotación;
-4. calcular cuántas veces se alcanza el `0` durante esa rotación;
-5. acumular ese valor en la contraseña.
-
-Esta parte cuenta todos los pasos por `0`, incluso si ocurren durante una rotación.
-
----
-
-## Diagrama de arquitectura
-
-```mermaid
-classDiagram
-    class Day01Main {
-        +main(args: String[]) void$
-    }
-
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
-
-    class Day01Part1Solver {
-        -parser: RotationParser
-        +solve(lines: List~String~) long
-    }
-
-    class Day01Part2Solver {
-        -parser: RotationParser
-        +solve(lines: List~String~) long
-    }
-
-    class RotationParser {
-        +parse(line: String) Rotation
-    }
-
-    class Rotation {
-        <<Record>>
-        +direction() Direction
-        +distance() int
-    }
-
-    class Direction {
-        <<Enum>>
-        LEFT
-        RIGHT
-    }
-
-    class CircularDial {
-        -position: int
-        +position() int
-        +rotate(rotation: Rotation) void
-        +countZeroClicksDuring(rotation: Rotation) long
-    }
-
-    Day01Main ..> PuzzleSolver : usa
-    Day01Main ..> Day01Part1Solver : instancia
-    Day01Main ..> Day01Part2Solver : instancia
-
-    Day01Part1Solver ..|> PuzzleSolver : implementa
-    Day01Part2Solver ..|> PuzzleSolver : implementa
-
-    Day01Part1Solver --> RotationParser : usa
-    Day01Part2Solver --> RotationParser : usa
-
-    Day01Part1Solver --> CircularDial : usa
-    Day01Part2Solver --> CircularDial : usa
-
-    RotationParser --> Rotation : crea
-    Rotation --> Direction : contiene
-    CircularDial --> Rotation : recibe
-```
-
----
-
-## Entrada del programa
-
-El archivo de entrada debe colocarse en:
-
-```text
-src/main/resources/day01/input.txt
-```
-
-Cada línea debe tener el siguiente formato:
-
-```text
-L68
-R48
-L5
-R1000
-```
-
----
-
-## Ejecución en IntelliJ IDEA
-
-Para ejecutar el día 1:
-
-1. abrir el archivo:
-
-```text
-src/main/java/es/ulpgc/aoc2025/day01/Day01Main.java
-```
-
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text
-Run 'Day01Main.main()'
-```
-
-La salida tendrá un formato similar a:
-
-```text
-Day 01 - Part 1: 964
-Day 01 - Part 2: <resultado_parte_2>
-```
-
----
-
-## Ejecución con Maven
-
-Para ejecutar los tests:
-
-```bash
-mvn test
-```
-
----
-
-## Tests
-
-El proyecto incluye tests separados para cada parte:
-
-```text
-Day01Part1SolverTest.java
-Day01Part2SolverTest.java
-```
-
-Los tests comprueban el ejemplo oficial:
-
-```text
-L68
-L30
-R48
-L5
-R60
-L55
-L1
-L99
-R14
-L82
-```
-
-Resultados esperados:
-
-```text
-Parte 1: 3
-Parte 2: 6
-```
-
-También es recomendable probar el caso especial de la parte 2:
-
-```text
-R1000
-```
-
-Desde la posición inicial `50`, el dial apunta a `0` diez veces durante la rotación.
-
----
-
-## Convención para próximos días
-
-Para mantener el proyecto ordenado, cada día seguirá la misma estructura:
-
-```text
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
-
-Ejemplo para el día 2:
-
-```text
-day02
-├── Day02Main.java
-├── common
-├── part1
-└── part2
-```
-
-De esta forma, cada día queda aislado y se evita mezclar soluciones de problemas distintos.
-
----
-
-## Conclusión
-
-La solución del día 1 está diseñada para ser clara, mantenible y extensible.
-
-La separación entre `common`, `part1` y `part2` permite reutilizar código cuando tiene sentido, sin acoplar innecesariamente las soluciones de ambas partes.
-
-El uso de `Rotation` como `record` mejora la expresividad del dominio, ya que representa una instrucción inmutable compuesta únicamente por una dirección y una distancia.
-
-Esta organización permite continuar el Advent of Code añadiendo nuevos días sin romper ni modificar las soluciones anteriores.
