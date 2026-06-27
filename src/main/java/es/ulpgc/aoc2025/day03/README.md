@@ -1,21 +1,16 @@
-# Advent of Code 2025 - Day 3: Lobby
+# Advent of Code 2025 - Día 3: Lobby
 
-Este proyecto contiene la solución para el **Día 3** del Advent of Code 2025: **Lobby**.
+Este documento recoge la explicación del **Día 3** del Advent of Code 2025: **Lobby**.
 
-El problema consiste en calcular la mayor salida de voltaje posible a partir de distintos bancos de baterías. Cada línea del input representa un banco de baterías, y cada dígito representa la potencia de una batería individual.
+El problema plantea que los ascensores y las escaleras mecánicas del vestíbulo están sin funcionar. Para alimentar las escaleras mecánicas, se dispone de varios bancos de baterías. Cada banco aparece en el input como una línea de dígitos, y cada dígito representa la potencia de una batería, con valores entre `1` y `9`.
 
-El día está dividido en dos partes:
-
-* **Parte 1**: hay que encender exactamente **2 baterías** de cada banco.
-* **Parte 2**: hay que encender exactamente **12 baterías** de cada banco.
-
-En ambos casos, las baterías no pueden reordenarse. El voltaje producido por un banco es el número formado por los dígitos de las baterías seleccionadas, manteniendo su orden original.
+El voltaje producido por un banco se calcula formando un número con las baterías seleccionadas. Las baterías no pueden reordenarse: el número debe respetar el orden en el que aparecen los dígitos en la línea.
 
 ---
 
-## Descripción del problema
+## Resumen del ejercicio
 
-La entrada contiene varios bancos de baterías, uno por línea.
+Cada línea del input representa un banco de baterías.
 
 Ejemplo:
 
@@ -26,50 +21,25 @@ Ejemplo:
 818181911112111
 ```
 
-Cada línea representa un banco. Por ejemplo:
-
-```text
-12345
-```
-
-Si se encienden las baterías `2` y `4`, el banco produce:
-
-```text
-24
-```
-
-No está permitido reordenar las baterías. Por tanto, en `12345` se puede formar `24`, pero no `42`.
+Dentro de cada banco hay que seleccionar una cantidad fija de baterías. El resultado de cada banco es el número más grande que se puede formar manteniendo el orden original de los dígitos seleccionados.
 
 ---
 
 ## Parte 1
 
-En la primera parte se debe elegir exactamente **2 baterías** de cada banco para formar el mayor número posible.
+En la primera parte hay que encender exactamente **2 baterías** de cada banco.
 
-Ejemplo:
+El objetivo es obtener el mayor número posible de dos dígitos por cada línea.
 
-```text
-987654321111111
-```
-
-La mejor elección es:
-
-```text
-98
-```
-
-porque son los dos primeros dígitos y forman el mayor número posible respetando el orden.
-
-Con el ejemplo oficial completo:
+Por ejemplo, en el banco:
 
 ```text
 987654321111111
-811111111111119
-234234234234278
-818181911112111
 ```
 
-Los mayores voltajes son:
+la mejor elección es `98`, porque son los dos primeros dígitos y forman el mayor número posible respetando el orden.
+
+Con el ejemplo oficial, los mayores voltajes son:
 
 ```text
 98
@@ -78,48 +48,33 @@ Los mayores voltajes son:
 92
 ```
 
-La suma total es:
+La suma total del ejemplo es:
 
 ```text
 357
-```
-
-Con el input real del usuario, el resultado de la parte 1 es:
-
-```text
-16812
 ```
 
 ---
 
 ## Parte 2
 
-En la segunda parte se debe elegir exactamente **12 baterías** de cada banco.
+En la segunda parte hay que encender exactamente **12 baterías** de cada banco.
 
-El voltaje producido sigue siendo el número formado por las baterías seleccionadas, pero ahora tendrá 12 dígitos.
+El objetivo sigue siendo formar el mayor número posible manteniendo el orden original, pero ahora el número resultante tiene 12 dígitos.
 
-Ejemplo:
+Por ejemplo, en el banco:
 
 ```text
 987654321111111
 ```
 
-El mayor voltaje posible es:
+el mayor voltaje posible es:
 
 ```text
 987654321111
 ```
 
-Con el ejemplo oficial completo:
-
-```text
-987654321111111
-811111111111119
-234234234234278
-818181911112111
-```
-
-Los mayores voltajes son:
+Con el ejemplo oficial, los mayores voltajes son:
 
 ```text
 987654321111
@@ -128,280 +83,100 @@ Los mayores voltajes son:
 888911112111
 ```
 
-La suma total es:
+La suma total del ejemplo es:
 
 ```text
 3121910778619
 ```
 
-Con el input real del usuario, el resultado de la parte 2 es:
-
-```text
-166345822896410
-```
-
 ---
 
-## Diseño y arquitectura
+# Estructura del proyecto
 
-La solución mantiene la misma estructura modular usada en los días anteriores:
+La solución del Día 3 mantiene la misma estructura modular usada en los días anteriores:
 
 ```text
 day03
 ├── Day03Main.java
 ├── common
+│   ├── BatteryBank.java
+│   ├── BatteryBankParser.java
+│   └── MaximumJoltageCalculator.java
 ├── part1
+│   └── Day03Part1Solver.java
 └── part2
+    └── Day03Part2Solver.java
 ```
 
-El objetivo es separar claramente:
+El objetivo de esta organización es separar claramente:
 
-* el punto de entrada del día;
-* las clases comunes del dominio;
-* la solución específica de la parte 1;
-* la solución específica de la parte 2.
+- El punto de entrada del día.
+- Las clases comunes del dominio.
+- La solución específica de la parte 1.
+- La solución específica de la parte 2.
 
-La lógica de cálculo del mayor voltaje se coloca en `common` porque sirve para ambas partes. La diferencia entre las partes no está en el algoritmo, sino en la cantidad de baterías que deben encenderse.
+La lógica de cálculo del mayor voltaje se coloca en `common` porque sirve para ambas partes. La diferencia entre las dos partes no está en el algoritmo, sino en la cantidad de baterías que deben encenderse.
 
 ```text
-Parte 1 → elegir 2 baterías
-Parte 2 → elegir 12 baterías
+Parte 1 -> elegir 2 baterías
+Parte 2 -> elegir 12 baterías
 ```
 
 ---
 
-## Principios aplicados
+# Clases del paquete `day03.common`
 
-### Single Responsibility Principle, SRP
-
-Cada clase tiene una única responsabilidad:
-
-* `Day03Main`: ejecuta el día 3 y muestra los resultados.
-* `Day03Part1Solver`: resuelve únicamente la parte 1.
-* `Day03Part2Solver`: resuelve únicamente la parte 2.
-* `BatteryBank`: representa un banco de baterías.
-* `BatteryBankParser`: convierte el input textual en bancos de baterías.
-* `MaximumJoltageCalculator`: calcula el mayor voltaje posible seleccionando un número concreto de baterías.
-* `PuzzleSolver`: define el contrato común de los solvers.
-
-Esta separación permite que cada clase sea fácil de entender, probar y modificar.
+El paquete `day03.common` contiene las clases compartidas por las dos partes del problema. Estas clases representan el dominio principal del Día 3: los bancos de baterías, el parseo del input y el cálculo del mayor voltaje posible.
 
 ---
 
-### Open/Closed Principle, OCP
+## `BatteryBank`
 
-El diseño permite extender el comportamiento sin modificar el código existente.
+El record `BatteryBank` representa un banco de baterías.
 
-Por ejemplo, si en una futura parte se pidiera elegir otra cantidad de baterías, no sería necesario crear un algoritmo nuevo. Bastaría con reutilizar:
-
-```java
-calculator.calculate(bank, batteriesToTurnOn);
-```
-
-cambiando el valor de `batteriesToTurnOn`.
-
----
-
-### Dependency Inversion Principle, DIP
-
-Los solvers implementan la interfaz común:
-
-```java
-PuzzleSolver
-```
-
-Esto permite tratar todas las soluciones del proyecto de forma uniforme.
-
-Ejemplo:
-
-```java
-PuzzleSolver part1Solver = new Day03Part1Solver();
-PuzzleSolver part2Solver = new Day03Part2Solver();
-```
-
-El código cliente no necesita conocer los detalles internos de cada solver.
-
----
-
-### DRY
-
-La lógica común se reutiliza en el paquete:
-
-```text
-es.ulpgc.aoc2025.day03.common
-```
-
-En este paquete se encuentran las clases compartidas por ambas partes:
-
-* `BatteryBank`
-* `BatteryBankParser`
-* `MaximumJoltageCalculator`
-
-Así se evita duplicar el algoritmo de cálculo entre `part1` y `part2`.
-
----
-
-### Código expresivo
-
-El código intenta representar directamente los conceptos del problema.
+Cada objeto contiene una cadena de texto con los dígitos de las baterías disponibles en ese banco.
 
 Por ejemplo:
 
-* `BatteryBank` representa un banco de baterías.
-* `MaximumJoltageCalculator` expresa claramente la responsabilidad de calcular el mayor voltaje.
-* `Day03Part1Solver` y `Day03Part2Solver` indican explícitamente qué parte resuelve cada clase.
-
----
-
-## Estructura del proyecto
-
-```text
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day03
-│   │                   ├── Day03Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── BatteryBank.java
-│   │                   │   ├── BatteryBankParser.java
-│   │                   │   └── MaximumJoltageCalculator.java
-│   │                   │
-│   │                   ├── part1
-│   │                   │   └── Day03Part1Solver.java
-│   │                   │
-│   │                   └── part2
-│   │                       └── Day03Part2Solver.java
-│   │
-│   └── resources
-│       └── day03
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day03
-                        ├── part1
-                        │   └── Day03Part1SolverTest.java
-                        └── part2
-                            └── Day03Part2SolverTest.java
-```
-
----
-
-## Paquetes principales
-
-### `es.ulpgc.aoc2025.common`
-
-Contiene código común a todo el proyecto Advent of Code.
-
-Actualmente contiene:
-
-```text
-PuzzleSolver.java
-```
-
-Esta interfaz define el contrato general que deben cumplir todos los solvers:
-
-```java
-long solve(List<String> lines);
-```
-
----
-
-### `es.ulpgc.aoc2025.day03`
-
-Contiene el punto de entrada específico del día 3:
-
-```text
-Day03Main.java
-```
-
-Esta clase se encarga de:
-
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. crear el solver de la parte 2;
-4. ejecutar ambos solvers;
-5. mostrar los resultados por consola.
-
----
-
-### `es.ulpgc.aoc2025.day03.common`
-
-Contiene las clases comunes del dominio del día 3.
-
-Estas clases son compartidas por la parte 1 y la parte 2 porque representan conceptos comunes del problema.
-
----
-
-## Clases principales
-
-### `BatteryBank`
-
-Representa un banco de baterías.
-
-Se puede implementar como `record`, ya que es un objeto de datos inmutable compuesto por una única secuencia de dígitos.
-
-```java
-package es.ulpgc.aoc2025.day03.common;
-
-public record BatteryBank(String batteries) {
-
-    public BatteryBank {
-        if (batteries == null) {
-            throw new IllegalArgumentException("Batteries cannot be null");
-        }
-
-        if (batteries.length() < 2) {
-            throw new IllegalArgumentException("A battery bank must contain at least two batteries");
-        }
-
-        if (!batteries.matches("[1-9]+")) {
-            throw new IllegalArgumentException("A battery bank can only contain digits from 1 to 9");
-        }
-    }
-}
-```
-
-El uso de `record` aporta varias ventajas:
-
-* expresa que el banco es un dato inmutable;
-* genera automáticamente el método `batteries()`;
-* genera automáticamente `equals()`, `hashCode()` y `toString()`;
-* reduce código repetitivo;
-* permite añadir validación en el constructor compacto.
-
----
-
-### `BatteryBankParser`
-
-Convierte las líneas del input en una lista de bancos de baterías.
-
-Ejemplo:
-
 ```text
 987654321111111
-811111111111119
 ```
 
-se transforma en una lista de objetos `BatteryBank`.
+representa un banco con quince baterías.
 
-Su responsabilidad es únicamente interpretar el formato de entrada.
+Esta clase valida que el banco sea correcto antes de permitir su creación. Las reglas son:
+
+- La cadena de baterías no puede ser `null`.
+- El banco debe contener al menos dos baterías.
+- Solo se permiten dígitos entre `1` y `9`.
+
+Esto evita que el programa trabaje con bancos inválidos, como cadenas vacías, valores nulos o baterías con dígito `0`.
+
+Al estar definido como `record`, `BatteryBank` es inmutable. Una vez creado, el contenido del banco no cambia.
 
 ---
 
-### `MaximumJoltageCalculator`
+## `BatteryBankParser`
 
-Calcula el mayor voltaje posible para un banco, seleccionando una cantidad concreta de baterías.
+La clase `BatteryBankParser` se encarga de transformar las líneas del input en objetos `BatteryBank`.
+
+Cada línea no vacía del archivo representa un banco de baterías. El parser recorre todas las líneas, ignora las líneas en blanco y crea un objeto `BatteryBank` con el contenido de cada línea.
+
+Sus responsabilidades principales son:
+
+- Recorrer las líneas del input.
+- Ignorar líneas vacías.
+- Eliminar espacios innecesarios con `trim()`.
+- Crear objetos `BatteryBank`.
+- Devolver la lista de bancos parseados.
+
+Esta clase separa la lógica de interpretación del input de la lógica de cálculo del voltaje.
+
+---
+
+## `MaximumJoltageCalculator`
+
+La clase `MaximumJoltageCalculator` calcula el mayor voltaje posible para un banco de baterías, seleccionando una cantidad concreta de baterías.
 
 Su método principal es:
 
@@ -409,247 +184,213 @@ Su método principal es:
 long calculate(BatteryBank bank, int batteriesToTurnOn);
 ```
 
-La misma clase sirve tanto para la parte 1 como para la parte 2:
+Este método recibe:
+
+- Un `BatteryBank`, que contiene la secuencia de baterías.
+- Un entero `batteriesToTurnOn`, que indica cuántas baterías deben seleccionarse.
+
+La misma clase sirve para resolver ambas partes:
 
 ```text
-Parte 1 → batteriesToTurnOn = 2
-Parte 2 → batteriesToTurnOn = 12
+Parte 1 -> batteriesToTurnOn = 2
+Parte 2 -> batteriesToTurnOn = 12
 ```
 
-El algoritmo selecciona la mayor subsecuencia posible de una longitud determinada.
+Antes de calcular el resultado, valida que la cantidad de baterías a encender sea correcta:
 
----
+- Debe ser mayor que cero.
+- No puede ser mayor que el número de baterías disponibles en el banco.
 
-## Estrategia de cálculo
+Internamente utiliza el método privado `maximumSubsequence`, que busca la mayor subsecuencia posible de una longitud concreta.
 
-El problema puede verse como:
+La idea del algoritmo es recorrer los dígitos de izquierda a derecha y eliminar dígitos anteriores cuando aparece un dígito mayor y todavía se pueden descartar baterías. De esta forma se obtiene el número más grande posible sin romper el orden original.
 
-> Dada una cadena de dígitos, obtener la mayor subsecuencia posible de longitud `N`.
-
-Una solución de fuerza bruta consistiría en probar todas las combinaciones de baterías posibles. Sin embargo, esto no escala bien, especialmente en la parte 2, donde hay que elegir 12 baterías.
-
-La solución usada aplica una estrategia voraz:
-
-1. se recorren los dígitos de izquierda a derecha;
-2. se mantiene una secuencia seleccionada;
-3. si aparece un dígito mayor que el último seleccionado y todavía se pueden descartar baterías, se elimina el dígito anterior;
-4. al final se conserva únicamente la longitud necesaria.
-
-Ejemplo simplificado:
+Por ejemplo, para:
 
 ```text
 818181911112111
 ```
 
-Para elegir 12 baterías, el algoritmo descarta algunos `1` iniciales y conserva una secuencia máxima:
+seleccionando 12 baterías, el resultado máximo es:
 
 ```text
 888911112111
 ```
 
-Este enfoque evita probar todas las combinaciones posibles.
+Esta clase contiene la lógica algorítmica común de ambas partes.
 
 ---
 
-### `Day03Part1Solver`
+# Clases de los paquetes `day03.part1` y `day03.part2`
 
-Resuelve la primera parte del problema.
+Los paquetes `day03.part1` y `day03.part2` contienen las clases encargadas de resolver cada parte del Día 3.
 
-Su algoritmo es:
-
-1. parsear el input para obtener los bancos;
-2. para cada banco, calcular el mayor voltaje eligiendo 2 baterías;
-3. sumar todos los voltajes.
+Ambas implementan la interfaz común `PuzzleSolver`, por lo que siguen la misma estructura: reciben una lista de líneas del input y devuelven el resultado numérico de la solución.
 
 ---
 
-### `Day03Part2Solver`
+## `Day03Part1Solver`
 
-Resuelve la segunda parte del problema.
+La clase `Day03Part1Solver` resuelve la primera parte del problema.
 
-Su algoritmo es:
+Su responsabilidad principal es calcular la suma total de los mayores voltajes posibles cuando se encienden exactamente 2 baterías de cada banco.
 
-1. parsear el input para obtener los bancos;
-2. para cada banco, calcular el mayor voltaje eligiendo 12 baterías;
-3. sumar todos los voltajes.
+Para ello, realiza los siguientes pasos:
+
+1. Usa `BatteryBankParser` para convertir el input en una lista de bancos.
+2. Inicializa el acumulador `totalJoltage` a cero.
+3. Recorre todos los bancos.
+4. Para cada banco, llama a `MaximumJoltageCalculator` con `BATTERIES_TO_TURN_ON = 2`.
+5. Suma el resultado de cada banco.
+6. Devuelve el total final.
+
+La constante:
+
+```java
+private static final int BATTERIES_TO_TURN_ON = 2;
+```
+
+expresa claramente la regla específica de la parte 1.
 
 ---
 
-## Diagrama de arquitectura
+## `Day03Part2Solver`
 
-```mermaid
-classDiagram
-    class Day03Main {
-        +main(args: String[]) void$
-    }
+La clase `Day03Part2Solver` resuelve la segunda parte del problema.
 
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
+Su responsabilidad principal es calcular la suma total de los mayores voltajes posibles cuando se encienden exactamente 12 baterías de cada banco.
 
-    class Day03Part1Solver {
-        -parser: BatteryBankParser
-        -calculator: MaximumJoltageCalculator
-        +solve(lines: List~String~) long
-    }
+Su estructura es prácticamente igual a la de la parte 1, pero cambia la constante que indica cuántas baterías deben encenderse:
 
-    class Day03Part2Solver {
-        -parser: BatteryBankParser
-        -calculator: MaximumJoltageCalculator
-        +solve(lines: List~String~) long
-    }
-
-    class BatteryBank {
-        <<Record>>
-        +batteries() String
-    }
-
-    class BatteryBankParser {
-        +parse(lines: List~String~) List~BatteryBank~
-    }
-
-    class MaximumJoltageCalculator {
-        +calculate(bank: BatteryBank, batteriesToTurnOn: int) long
-    }
-
-    Day03Main ..> PuzzleSolver : usa
-    Day03Main ..> Day03Part1Solver : instancia
-    Day03Main ..> Day03Part2Solver : instancia
-
-    Day03Part1Solver ..|> PuzzleSolver : implementa
-    Day03Part2Solver ..|> PuzzleSolver : implementa
-
-    Day03Part1Solver --> BatteryBankParser : usa
-    Day03Part2Solver --> BatteryBankParser : usa
-
-    Day03Part1Solver --> MaximumJoltageCalculator : usa
-    Day03Part2Solver --> MaximumJoltageCalculator : usa
-
-    BatteryBankParser --> BatteryBank : crea
-    MaximumJoltageCalculator --> BatteryBank : consulta
+```java
+private static final int BATTERIES_TO_TURN_ON = 12;
 ```
+
+Para resolver la parte 2, realiza los siguientes pasos:
+
+1. Usa `BatteryBankParser` para convertir el input en una lista de bancos.
+2. Inicializa el acumulador `totalJoltage` a cero.
+3. Recorre todos los bancos.
+4. Para cada banco, llama a `MaximumJoltageCalculator` con `BATTERIES_TO_TURN_ON = 12`.
+5. Suma el resultado de cada banco.
+6. Devuelve el total final.
+
+La diferencia entre ambas partes queda aislada en una constante, mientras que la lógica de cálculo se reutiliza.
 
 ---
 
-## Entrada del programa
+# Clase del paquete `day03`
 
-El archivo de entrada debe colocarse en:
-
-```text
-src/main/resources/day03/input.txt
-```
-
-El contenido debe tener un banco de baterías por línea:
-
-```text
-987654321111111
-811111111111119
-234234234234278
-818181911112111
-```
+El paquete `day03` contiene la clase principal del Día 3.
 
 ---
 
-## Ejecución en IntelliJ IDEA
+## `Day03Main`
 
-Para ejecutar el día 3:
+La clase `Day03Main` es el punto de entrada para ejecutar la solución completa del Día 3.
 
-1. abrir el archivo:
+Su responsabilidad principal no es resolver directamente el problema, sino coordinar la ejecución de ambas partes.
 
-```text
-src/main/java/es/ulpgc/aoc2025/day03/Day03Main.java
+El método `main` realiza los siguientes pasos:
+
+1. Lee todas las líneas del archivo `src/main/resources/day03/input.txt`.
+2. Crea una instancia de `Day03Part1Solver`.
+3. Crea una instancia de `Day03Part2Solver`.
+4. Ejecuta el método `solve` de cada solver.
+5. Guarda los resultados de ambas partes.
+6. Imprime los resultados por consola.
+
+Esta clase usa la interfaz `PuzzleSolver` para referenciar ambos solvers:
+
+```java
+PuzzleSolver part1Solver = new Day03Part1Solver();
+PuzzleSolver part2Solver = new Day03Part2Solver();
 ```
 
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text
-Run 'Day03Main.main()'
-```
-
-La salida tendrá este formato:
-
-```text
-Day 03 - Part 1: 16812
-Day 03 - Part 2: 166345822896410
-```
+Gracias a esto, ambas partes pueden ejecutarse de forma uniforme, aunque cada una use una cantidad distinta de baterías.
 
 ---
 
-## Ejecución con Maven
+# Interfaz común del proyecto
 
-Para ejecutar los tests:
+Además de las clases específicas del Día 3, el proyecto utiliza la interfaz común `PuzzleSolver`, ubicada en el paquete `aoc2025.common`.
 
-```bash
-mvn test
+Esta interfaz define el contrato común para todos los solvers del Advent of Code:
+
+```java
+long solve(List<String> lines);
 ```
+
+En el Día 3, tanto `Day03Part1Solver` como `Day03Part2Solver` implementan esta interfaz.
+
+Esto permite que las soluciones de todos los días mantengan una estructura común:
+
+- Una clase principal que lee el input.
+- Un solver para la parte 1.
+- Un solver para la parte 2.
+- Un método `solve` común para ejecutar cada solución.
+
+\newpage
+
+# Fundamentos de diseño utilizados
+
+En la solución del Día 3 se utilizan los siguientes fundamentos de diseño:
+
+- Alta cohesión.
+- Bajo acoplamiento.
+- Modularidad.
+- Código expresivo.
+- Abstracción.
+- Encapsulación.
+- Diseño por contrato.
+- Inmutabilidad.
+- Reutilización de lógica común.
 
 ---
 
-## Tests
+# Principios de diseño aplicados
 
-El proyecto incluye tests separados para cada parte:
+En la solución del Día 3 se aplican los siguientes principios de diseño:
 
-```text
-Day03Part1SolverTest.java
-Day03Part2SolverTest.java
-```
-
-Los tests comprueban el ejemplo oficial:
-
-```text
-987654321111111
-811111111111119
-234234234234278
-818181911112111
-```
-
-Resultado esperado para la parte 1:
-
-```text
-357
-```
-
-Resultado esperado para la parte 2:
-
-```text
-3121910778619
-```
+- Principio de Responsabilidad Única, SRP.
+- Principio Abierto/Cerrado, OCP.
+- Principio de Sustitución de Liskov, LSP.
+- Principio de Segregación de Interfaces, ISP.
+- Principio de Inversión de Dependencias, DIP.
+- Composición sobre herencia.
+- Principio DRY.
+- Ley de Demeter.
+- Principio YAGNI.
+- Principio de mínima sorpresa.
+- Principio de mínimo compromiso.
 
 ---
 
-## Convención para próximos días
+# Patrones de diseño aplicados
 
-Cada día del Advent of Code seguirá la misma estructura:
+En la solución del Día 3 se utilizan los siguientes patrones de diseño:
 
-```text
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
-
-Ejemplo para el día 4:
-
-```text
-day04
-├── Day04Main.java
-├── common
-├── part1
-└── part2
-```
-
-De esta forma, cada día queda aislado y se evita mezclar soluciones de problemas distintos.
+- Iterator.
+- Strategy.
+- Command, aplicado parcialmente.
 
 ---
 
-## Conclusión
+# Patrones no aplicados
 
-La solución del día 3 está organizada para mantener una separación clara entre el dominio común y las diferencias específicas de cada parte.
+Aunque algunos patrones aparecen en los materiales teóricos, no todos son necesarios en esta solución.
 
-La clase `MaximumJoltageCalculator` permite reutilizar el mismo algoritmo para seleccionar la mayor subsecuencia posible, cambiando únicamente el número de baterías que deben encenderse.
+- No se aplica `Singleton`.
+- No se aplica `Factory Method`.
+- No se aplica `Adapter`.
+- No se aplica `Decorator`.
+- No se aplica `Observer`.
+- No se aplica `Template Method` como patrón formal.
 
-Esta estructura evita duplicación, mejora la mantenibilidad y permite añadir nuevas partes o nuevos días sin romper las soluciones anteriores.
+---
+
+# Conclusión
+
+La solución del Día 3 está organizada de forma modular. El dominio común se concentra en el paquete `day03.common`, mientras que cada parte tiene su propio solver.
+
+El algoritmo principal está centralizado en `MaximumJoltageCalculator`, lo que permite reutilizar la misma lógica para la parte 1 y la parte 2 cambiando únicamente el número de baterías que deben encenderse.
