@@ -1,19 +1,13 @@
-# Advent of Code 2025 - Day 6: Trash Compactor
+# Día 6: Trash Compactor
 
-Este proyecto contiene la solución para el **Día 6** del Advent of Code 2025: **Trash Compactor**.
+En el sexto día del Advent of Code 2025, el problema se desarrolla dentro de un compactador de basura. Mientras esperas a que una familia de cefalópodos consiga abrir la puerta, ayudas a la más joven con sus deberes de matemáticas.
 
-El problema consiste en leer una hoja de ejercicios matemáticos escrita en un formato poco habitual. La hoja contiene varios problemas colocados horizontalmente, separados por columnas vacías. Cada problema contiene varios números y un operador al final, que puede ser suma (`+`) o multiplicación (`*`).
+La hoja de ejercicios contiene varios problemas matemáticos colocados uno al lado de otro en una lista horizontal muy larga. Cada problema está formado por varios números y una operación al final.
 
-El día está dividido en dos partes:
+Las operaciones posibles son:
 
-* **Parte 1**: los números se leen horizontalmente, por filas.
-* **Parte 2**: los números se leen verticalmente, por columnas, de derecha a izquierda.
-
----
-
-## Descripción del problema
-
-La entrada representa una hoja de ejercicios matemáticos.
+* `+`: suma.
+* `*`: multiplicación.
 
 Ejemplo:
 
@@ -24,17 +18,15 @@ Ejemplo:
 *   +   *   +  
 ```
 
-Los problemas están colocados uno junto a otro. Cada problema termina con un operador en la última fila.
-
-Los problemas están separados por una columna completa formada solo por espacios.
+En la primera parte, los números de cada problema se leen horizontalmente por bloques. En la segunda parte, la lectura cambia y los números se interpretan por columnas, de derecha a izquierda.
 
 ---
 
 ## Parte 1
 
-En la primera parte, cada problema se lee de forma horizontal.
+En la primera parte, cada problema se lee como un bloque vertical de números, separados de otros problemas por columnas completamente vacías.
 
-Con el ejemplo:
+A partir del ejemplo:
 
 ```text
 123 328  51 64 
@@ -43,7 +35,7 @@ Con el ejemplo:
 *   +   *   +  
 ```
 
-Los problemas son:
+Se obtienen cuatro problemas:
 
 ```text
 123 * 45 * 6 = 33210
@@ -52,13 +44,13 @@ Los problemas son:
 64 + 23 + 314 = 401
 ```
 
-La suma total es:
+El resultado final es la suma de todos los resultados individuales:
 
 ```text
-4277556
+33210 + 490 + 4243455 + 401 = 4277556
 ```
 
-Con el input real del usuario, el resultado de la parte 1 es:
+Con el input real, el resultado obtenido para la parte 1 fue:
 
 ```text
 5322004718681
@@ -68,18 +60,11 @@ Con el input real del usuario, el resultado de la parte 1 es:
 
 ## Parte 2
 
-En la segunda parte, la forma de leer la hoja cambia.
+En la segunda parte, los cefalópodos explican que su forma correcta de leer matemáticas es de derecha a izquierda y por columnas.
 
-Ahora los problemas se leen:
+Cada número se encuentra en una columna. El dígito más significativo está arriba y el menos significativo abajo. Los problemas siguen separados por columnas completamente vacías, y la operación sigue apareciendo en la última fila del bloque.
 
-```text
-de derecha a izquierda
-por columnas
-con el dígito más significativo arriba
-y el dígito menos significativo abajo
-```
-
-Usando el mismo ejemplo:
+Con el mismo ejemplo:
 
 ```text
 123 328  51 64 
@@ -88,7 +73,7 @@ Usando el mismo ejemplo:
 *   +   *   +  
 ```
 
-Los problemas pasan a ser:
+Los problemas se interpretan de otra forma:
 
 ```text
 4 + 431 + 623 = 1058
@@ -97,13 +82,13 @@ Los problemas pasan a ser:
 356 * 24 * 1 = 8544
 ```
 
-La suma total es:
+El resultado final es:
 
 ```text
-3263827
+1058 + 3253600 + 625 + 8544 = 3263827
 ```
 
-Con el input real del usuario, el resultado de la parte 2 es:
+Con el input real, el resultado obtenido para la parte 2 fue:
 
 ```text
 9876636978528
@@ -111,866 +96,355 @@ Con el input real del usuario, el resultado de la parte 2 es:
 
 ---
 
-## Diseño y arquitectura
+# Estructura del proyecto
 
-La solución mantiene la estructura modular usada en los días anteriores:
+La solución del Día 6 mantiene la misma estructura modular usada en los días anteriores:
 
 ```text
 day06
 ├── Day06Main.java
 ├── common
+│   ├── MathOperation.java
+│   ├── MathProblem.java
+│   ├── MathWorksheet.java
+│   └── MathWorksheetParser.java
 ├── part1
+│   ├── Day06Part1Solver.java
+│   └── HorizontalMathWorksheetProblemExtractor.java
 └── part2
+    ├── Day06Part2Solver.java
+    └── VerticalMathWorksheetProblemExtractor.java
 ```
 
-En este día es importante separar las clases comunes de las clases específicas de cada parte.
+La idea principal es separar:
 
-La parte 1 y la parte 2 comparten:
-
-* la representación de la hoja;
-* la representación de un problema matemático;
-* la operación matemática;
-* el parser base.
-
-Sin embargo, **no comparten la forma de extraer los problemas**, porque cada parte interpreta la hoja de una manera distinta.
-
-Por eso se crean dos extractores diferentes:
-
-```text
-HorizontalMathWorksheetProblemExtractor → específico de part1
-VerticalMathWorksheetProblemExtractor   → específico de part2
-```
-
-Esto evita forzar una clase común a tener dos comportamientos incompatibles.
+* El punto de entrada del día.
+* Las clases comunes del dominio matemático.
+* El parseo de la hoja.
+* La extracción horizontal de problemas para la parte 1.
+* La extracción vertical de problemas para la parte 2.
+* La resolución específica de cada parte.
 
 ---
 
-## Principios aplicados
+# Clases del paquete `day06.common`
 
-### Single Responsibility Principle, SRP
-
-Cada clase tiene una única responsabilidad:
-
-* `Day06Main`: ejecuta el día 6 y muestra los resultados.
-* `MathOperation`: representa la operación matemática.
-* `MathProblem`: representa un problema matemático y sabe resolverlo.
-* `MathWorksheet`: representa la hoja completa.
-* `MathWorksheetParser`: convierte las líneas del input en una hoja normalizada.
-* `HorizontalMathWorksheetProblemExtractor`: extrae problemas según la lectura horizontal de la parte 1.
-* `VerticalMathWorksheetProblemExtractor`: extrae problemas según la lectura vertical de la parte 2.
-* `Day06Part1Solver`: resuelve únicamente la parte 1.
-* `Day06Part2Solver`: resuelve únicamente la parte 2.
+El paquete `day06.common` contiene las clases comunes utilizadas por ambas partes.
 
 ---
 
-### Open/Closed Principle, OCP
+## `MathOperation`
 
-La parte 2 se añade sin modificar la lógica de la parte 1.
+El enum `MathOperation` representa las operaciones matemáticas posibles de la hoja.
 
-Como la interpretación de la hoja cambia bastante entre partes, se crea una nueva clase específica para la parte 2:
+Tiene dos valores:
 
-```text
-VerticalMathWorksheetProblemExtractor
-```
+* `ADD`: suma.
+* `MULTIPLY`: multiplicación.
 
-La parte 1 conserva su extractor horizontal:
-
-```text
-HorizontalMathWorksheetProblemExtractor
-```
-
-De esta forma, el código de la parte 1 queda cerrado a modificaciones innecesarias, pero el sistema sigue abierto a extensión.
-
----
-
-### Dependency Inversion Principle, DIP
-
-Los solvers implementan la interfaz común:
+Su método principal es:
 
 ```java
-PuzzleSolver
+public long applyTo(long left, long right)
 ```
 
-Esto permite ejecutarlos de forma uniforme desde el `Main`:
+Este método aplica la operación entre dos valores.
+
+También contiene el método:
+
+```java
+public static MathOperation fromSymbol(String symbol)
+```
+
+Este método convierte un símbolo textual, como `+` o `*`, en su correspondiente operación del enum.
+
+---
+
+## `MathProblem`
+
+El record `MathProblem` representa un problema matemático individual.
+
+Está formado por:
+
+```java
+public record MathProblem(List<Long> numbers, MathOperation operation)
+```
+
+* `numbers`: lista de números del problema.
+* `operation`: operación que debe aplicarse entre esos números.
+
+Esta clase valida que:
+
+* La lista de números no sea `null`.
+* La lista de números no esté vacía.
+* La operación no sea `null`.
+
+Además, copia la lista de números con `List.copyOf`, evitando modificaciones externas.
+
+Su método principal es:
+
+```java
+public long solve()
+```
+
+Este método calcula el resultado del problema aplicando la operación a todos los números.
+
+---
+
+## `MathWorksheet`
+
+El record `MathWorksheet` representa la hoja completa de ejercicios.
+
+Internamente almacena una lista de filas:
+
+```java
+public record MathWorksheet(List<String> rows)
+```
+
+Esta clase valida que:
+
+* La lista de filas no sea `null`.
+* La hoja tenga al menos dos filas.
+* Ninguna fila sea `null`.
+* Todas las filas tengan la misma anchura.
+
+Sus métodos principales son:
+
+```java
+public int height()
+```
+
+Devuelve la altura de la hoja.
+
+```java
+public int width()
+```
+
+Devuelve la anchura de la hoja.
+
+```java
+public int operationRowIndex()
+```
+
+Devuelve el índice de la fila donde están las operaciones.
+
+```java
+public boolean isBlankColumn(int column)
+```
+
+Comprueba si una columna está completamente vacía.
+
+```java
+public String textAt(int row, int startColumn, int endColumn)
+```
+
+Devuelve el texto de una fila entre dos columnas.
+
+```java
+public char characterAt(int row, int column)
+```
+
+Devuelve el carácter situado en una posición concreta.
+
+---
+
+## `MathWorksheetParser`
+
+La clase `MathWorksheetParser` transforma las líneas del input en un objeto `MathWorksheet`.
+
+Su método principal es:
+
+```java
+public MathWorksheet parse(List<String> lines)
+```
+
+El parser ignora líneas en blanco y normaliza la anchura de todas las filas. Esto es importante porque el problema depende de la posición de las columnas, y algunas líneas pueden perder espacios finales al copiar el input.
+
+Para solucionarlo, el parser calcula la anchura máxima y rellena las filas más cortas con espacios a la derecha.
+
+---
+
+# Clases del paquete `day06.part1`
+
+El paquete `day06.part1` contiene la solución específica de la primera parte.
+
+---
+
+## `Day06Part1Solver`
+
+La clase `Day06Part1Solver` resuelve la primera parte del Día 6.
+
+Implementa la interfaz común `PuzzleSolver`.
+
+Su método `solve` realiza los siguientes pasos:
+
+1. Usa `MathWorksheetParser` para convertir el input en un `MathWorksheet`.
+2. Usa `HorizontalMathWorksheetProblemExtractor` para extraer los problemas.
+3. Resuelve cada `MathProblem`.
+4. Suma todos los resultados.
+5. Devuelve el total.
+
+---
+
+## `HorizontalMathWorksheetProblemExtractor`
+
+La clase `HorizontalMathWorksheetProblemExtractor` extrae los problemas de la hoja siguiendo la lectura de la parte 1.
+
+Su responsabilidad es localizar los bloques de columnas que forman cada problema. Los problemas están separados por columnas completamente vacías.
+
+Para cada bloque:
+
+1. Extrae los números leyendo cada fila del bloque.
+2. Extrae la operación desde la última fila.
+3. Crea un objeto `MathProblem`.
+
+Esta clase contiene la lógica específica de lectura horizontal del problema.
+
+---
+
+# Clases del paquete `day06.part2`
+
+El paquete `day06.part2` contiene la solución específica de la segunda parte.
+
+---
+
+## `Day06Part2Solver`
+
+La clase `Day06Part2Solver` resuelve la segunda parte del Día 6.
+
+También implementa la interfaz `PuzzleSolver`.
+
+Su método `solve` realiza los siguientes pasos:
+
+1. Usa `MathWorksheetParser` para convertir el input en un `MathWorksheet`.
+2. Usa `VerticalMathWorksheetProblemExtractor` para extraer los problemas.
+3. Resuelve cada `MathProblem`.
+4. Suma todos los resultados.
+5. Devuelve el total.
+
+---
+
+## `VerticalMathWorksheetProblemExtractor`
+
+La clase `VerticalMathWorksheetProblemExtractor` extrae los problemas siguiendo la lectura correcta de la parte 2.
+
+A diferencia de la parte 1, los números no se leen por filas dentro del bloque, sino por columnas.
+
+El extractor:
+
+1. Localiza cada bloque de columnas separado por columnas vacías.
+2. Recorre las columnas del bloque de derecha a izquierda.
+3. En cada columna, lee los dígitos de arriba hacia abajo.
+4. Convierte cada columna numérica en un número.
+5. Extrae la operación desde la última fila.
+6. Crea un objeto `MathProblem`.
+
+Esta clase contiene la lógica específica de lectura vertical del problema.
+
+---
+
+# Clase del paquete `day06`
+
+El paquete `day06` contiene la clase principal del Día 6.
+
+---
+
+## `Day06Main`
+
+La clase `Day06Main` es el punto de entrada para ejecutar la solución completa del Día 6.
+
+El método `main` realiza los siguientes pasos:
+
+1. Lee todas las líneas del archivo `src/main/resources/day06/input.txt`.
+2. Crea una instancia de `Day06Part1Solver`.
+3. Crea una instancia de `Day06Part2Solver`.
+4. Ejecuta el método `solve` de ambos solvers.
+5. Guarda los resultados.
+6. Imprime los resultados por consola.
+
+Esta clase utiliza la interfaz `PuzzleSolver` para referenciar ambos solvers:
 
 ```java
 PuzzleSolver part1Solver = new Day06Part1Solver();
 PuzzleSolver part2Solver = new Day06Part2Solver();
 ```
 
-El `Main` no necesita conocer los detalles internos de cómo se interpreta la hoja en cada parte.
-
 ---
 
-### DRY
+# Interfaz común del proyecto
 
-La lógica común se mantiene en el paquete:
+El proyecto utiliza la interfaz común `PuzzleSolver`, ubicada en el paquete `aoc2025.common`.
 
-```text
-es.ulpgc.aoc2025.day06.common
-```
-
-Aquí se encuentran:
-
-* `MathOperation`
-* `MathProblem`
-* `MathWorksheet`
-* `MathWorksheetParser`
-
-La lógica específica de lectura se separa en cada parte para evitar duplicar o mezclar responsabilidades.
-
----
-
-### Código expresivo
-
-Los nombres de las clases reflejan directamente el dominio del problema:
-
-* `MathWorksheet`: hoja de ejercicios.
-* `MathProblem`: problema matemático.
-* `MathOperation`: operación matemática.
-* `HorizontalMathWorksheetProblemExtractor`: extractor horizontal.
-* `VerticalMathWorksheetProblemExtractor`: extractor vertical.
-
-Esto hace que el diseño sea fácil de leer y mantener.
-
----
-
-## Estructura del proyecto
-
-```text
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day06
-│   │                   ├── Day06Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── MathOperation.java
-│   │                   │   ├── MathProblem.java
-│   │                   │   ├── MathWorksheet.java
-│   │                   │   └── MathWorksheetParser.java
-│   │                   │
-│   │                   ├── part1
-│   │                   │   ├── Day06Part1Solver.java
-│   │                   │   └── HorizontalMathWorksheetProblemExtractor.java
-│   │                   │
-│   │                   └── part2
-│   │                       ├── Day06Part2Solver.java
-│   │                       └── VerticalMathWorksheetProblemExtractor.java
-│   │
-│   └── resources
-│       └── day06
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day06
-                        ├── part1
-                        │   └── Day06Part1SolverTest.java
-                        └── part2
-                            └── Day06Part2SolverTest.java
-```
-
----
-
-## Paquetes principales
-
-### `es.ulpgc.aoc2025.common`
-
-Contiene código común a todo el proyecto Advent of Code.
-
-Actualmente contiene:
-
-```text
-PuzzleSolver.java
-```
-
-Esta interfaz define el contrato general de todos los solvers:
+Esta interfaz define el contrato común para todos los solvers del Advent of Code:
 
 ```java
 long solve(List<String> lines);
 ```
 
----
-
-### `es.ulpgc.aoc2025.day06`
-
-Contiene el punto de entrada específico del día 6:
-
-```text
-Day06Main.java
-```
-
-Esta clase se encarga de:
-
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. crear el solver de la parte 2;
-4. ejecutar ambos solvers;
-5. mostrar los resultados por consola.
+En el Día 6, tanto `Day06Part1Solver` como `Day06Part2Solver` implementan esta interfaz.
 
 ---
 
-### `es.ulpgc.aoc2025.day06.common`
+# Fundamentos de diseño utilizados
 
-Contiene las clases comunes del dominio del día 6.
+En la solución del Día 6 se utilizan los siguientes fundamentos de diseño:
 
-Estas clases no dependen de una parte concreta.
-
----
-
-### `es.ulpgc.aoc2025.day06.part1`
-
-Contiene la solución específica de la primera parte.
-
----
-
-### `es.ulpgc.aoc2025.day06.part2`
-
-Contiene la solución específica de la segunda parte.
+* Alta cohesión.
+* Bajo acoplamiento.
+* Modularidad.
+* Código expresivo.
+* Abstracción.
+* Encapsulación.
+* Diseño por contrato.
+* Inmutabilidad.
+* Normalización de entrada.
 
 ---
 
-## Clases principales
+# Principios de diseño aplicados
 
-### `MathOperation`
+En la solución del Día 6 se aplican los siguientes principios de diseño:
 
-Representa las operaciones posibles de la hoja:
-
-```java
-package es.ulpgc.aoc2025.day06.common;
-
-public enum MathOperation {
-    ADD,
-    MULTIPLY;
-
-    public long applyTo(long left, long right) {
-        return switch (this) {
-            case ADD -> left + right;
-            case MULTIPLY -> left * right;
-        };
-    }
-
-    public static MathOperation fromSymbol(String symbol) {
-        return switch (symbol) {
-            case "+" -> ADD;
-            case "*" -> MULTIPLY;
-            default -> throw new IllegalArgumentException("Invalid operation: " + symbol);
-        };
-    }
-}
-```
-
-Responsabilidades:
-
-* representar una suma;
-* representar una multiplicación;
-* aplicar la operación a dos valores;
-* convertir un símbolo textual en una operación.
+* Principio de Responsabilidad Única, SRP.
+* Principio Abierto/Cerrado, OCP.
+* Principio de Sustitución de Liskov, LSP.
+* Principio de Segregación de Interfaces, ISP.
+* Principio de Inversión de Dependencias, DIP.
+* Composición sobre herencia.
+* Principio DRY.
+* Ley de Demeter.
+* Principio YAGNI.
+* Principio de mínima sorpresa.
 
 ---
 
-### `MathProblem`
+# Patrones de diseño aplicados
 
-Representa un problema matemático individual.
+En la solución del Día 6 se utilizan los siguientes patrones de diseño:
 
-```java
-package es.ulpgc.aoc2025.day06.common;
-
-import java.util.List;
-
-public record MathProblem(List<Long> numbers, MathOperation operation) {
-
-    public MathProblem {
-        if (numbers == null) {
-            throw new IllegalArgumentException("Numbers cannot be null");
-        }
-
-        if (numbers.isEmpty()) {
-            throw new IllegalArgumentException("A problem must contain at least one number");
-        }
-
-        if (operation == null) {
-            throw new IllegalArgumentException("Operation cannot be null");
-        }
-
-        numbers = List.copyOf(numbers);
-    }
-
-    public long solve() {
-        long result = numbers.get(0);
-
-        for (int i = 1; i < numbers.size(); i++) {
-            result = operation.applyTo(result, numbers.get(i));
-        }
-
-        return result;
-    }
-}
-```
-
-Responsabilidades:
-
-* almacenar los números del problema;
-* almacenar la operación;
-* calcular el resultado del problema.
+* Iterator.
+* Strategy.
+* Factory Method, aplicado de forma simple mediante `MathOperation.fromSymbol`.
+* Command, aplicado parcialmente.
 
 ---
 
-### `MathWorksheet`
+# Patrones no aplicados
 
-Representa la hoja completa de ejercicios.
+En la solución del Día 6 no se aplican los siguientes patrones de diseño:
 
-```java
-package es.ulpgc.aoc2025.day06.common;
-
-import java.util.List;
-
-public record MathWorksheet(List<String> rows) {
-
-    public MathWorksheet {
-        if (rows == null) {
-            throw new IllegalArgumentException("Rows cannot be null");
-        }
-
-        if (rows.size() < 2) {
-            throw new IllegalArgumentException("A worksheet must contain number rows and an operation row");
-        }
-
-        int width = rows.get(0).length();
-
-        for (String row : rows) {
-            if (row == null) {
-                throw new IllegalArgumentException("Row cannot be null");
-            }
-
-            if (row.length() != width) {
-                throw new IllegalArgumentException("All rows must have the same width");
-            }
-        }
-
-        rows = List.copyOf(rows);
-    }
-
-    public int height() {
-        return rows.size();
-    }
-
-    public int width() {
-        return rows.get(0).length();
-    }
-
-    public int operationRowIndex() {
-        return height() - 1;
-    }
-
-    public boolean isBlankColumn(int column) {
-        for (String row : rows) {
-            if (row.charAt(column) != ' ') {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
-    public String textAt(int row, int startColumn, int endColumn) {
-        return rows.get(row).substring(startColumn, endColumn);
-    }
-
-    // Añadido para la parte 2.
-    // Permite leer un carácter concreto de la hoja.
-    public char characterAt(int row, int column) {
-        return rows.get(row).charAt(column);
-    }
-}
-```
-
-Responsabilidades:
-
-* almacenar las filas de la hoja;
-* validar que todas las filas tengan la misma anchura;
-* detectar columnas vacías;
-* devolver fragmentos de texto;
-* permitir leer caracteres concretos.
+* Singleton.
+* Adapter.
+* Decorator.
+* Observer.
+* Template Method.
 
 ---
 
-### `MathWorksheetParser`
+# Conclusión
 
-Convierte las líneas del input en un `MathWorksheet`.
+La solución del Día 6 está organizada de forma clara y modular.
 
-```java
-package es.ulpgc.aoc2025.day06.common;
+La primera parte interpreta la hoja leyendo los problemas horizontalmente por bloques. La segunda parte cambia la interpretación y lee los números por columnas de derecha a izquierda.
 
-import java.util.ArrayList;
-import java.util.List;
-
-public class MathWorksheetParser {
-
-    public MathWorksheet parse(List<String> lines) {
-        List<String> rows = new ArrayList<>();
-
-        for (String line : lines) {
-            if (!line.isBlank()) {
-                rows.add(line);
-            }
-        }
-
-        // Añadido para Day 06.
-        // Al copiar el input, algunas filas pueden perder espacios finales.
-        // Como el problema depende de columnas, rellenamos todas las filas
-        // hasta la anchura máxima usando espacios a la derecha.
-        return new MathWorksheet(normalizeWidth(rows));
-    }
-
-    private List<String> normalizeWidth(List<String> rows) {
-        int width = maxWidthOf(rows);
-        List<String> normalizedRows = new ArrayList<>();
-
-        for (String row : rows) {
-            normalizedRows.add(padRight(row, width));
-        }
-
-        return normalizedRows;
-    }
-
-    private int maxWidthOf(List<String> rows) {
-        int maxWidth = 0;
-
-        for (String row : rows) {
-            if (row.length() > maxWidth) {
-                maxWidth = row.length();
-            }
-        }
-
-        return maxWidth;
-    }
-
-    private String padRight(String text, int width) {
-        return text + " ".repeat(width - text.length());
-    }
-}
-```
-
-Esta clase es especialmente importante en este día.
-
-Como el input depende de columnas, los espacios forman parte del formato. Al copiar el input desde la web o guardarlo en el editor, pueden perderse espacios al final de algunas líneas.
-
-Por eso el parser normaliza todas las filas para que tengan la misma anchura, rellenando con espacios a la derecha.
-
----
-
-### `HorizontalMathWorksheetProblemExtractor`
-
-Extrae los problemas usando la interpretación de la parte 1.
-
-Ubicación:
-
-```text
-src/main/java/es/ulpgc/aoc2025/day06/part1/HorizontalMathWorksheetProblemExtractor.java
-```
-
-Responsabilidades:
-
-* detectar los bloques separados por columnas vacías;
-* leer cada número de forma horizontal;
-* leer el operador del bloque;
-* crear objetos `MathProblem`.
-
-La parte 1 lee cada bloque así:
-
-```text
-por filas
-de arriba hacia abajo
-```
-
----
-
-### `VerticalMathWorksheetProblemExtractor`
-
-Extrae los problemas usando la interpretación de la parte 2.
-
-Ubicación:
-
-```text
-src/main/java/es/ulpgc/aoc2025/day06/part2/VerticalMathWorksheetProblemExtractor.java
-```
-
-Responsabilidades:
-
-* detectar los bloques separados por columnas vacías;
-* recorrer las columnas de derecha a izquierda;
-* formar números leyendo los dígitos de arriba hacia abajo;
-* leer el operador del bloque;
-* crear objetos `MathProblem`.
-
-La parte 2 lee cada bloque así:
-
-```text
-por columnas
-de derecha a izquierda
-```
-
----
-
-### `Day06Part1Solver`
-
-Resuelve la primera parte del problema.
-
-Su algoritmo es:
-
-1. parsear la hoja;
-2. extraer los problemas con `HorizontalMathWorksheetProblemExtractor`;
-3. resolver cada problema;
-4. sumar todos los resultados.
-
----
-
-### `Day06Part2Solver`
-
-Resuelve la segunda parte del problema.
-
-Su algoritmo es:
-
-1. parsear la hoja;
-2. extraer los problemas con `VerticalMathWorksheetProblemExtractor`;
-3. resolver cada problema;
-4. sumar todos los resultados.
-
----
-
-## Estrategia de resolución
-
-### Detección de problemas
-
-Los problemas no se separan por espacios normales, sino por columnas completas vacías.
-
-Una columna vacía es una columna en la que todas las filas contienen un espacio:
-
-```text
-" "
-```
-
-Por eso la clase `MathWorksheet` tiene el método:
-
-```java
-isBlankColumn(int column)
-```
-
-El extractor avanza por la hoja buscando tramos de columnas no vacías. Cada tramo representa un problema.
-
----
-
-### Parte 1: lectura horizontal
-
-Para cada bloque detectado:
-
-1. se recorren las filas de números;
-2. se extrae el texto entre `startColumn` y `endColumn`;
-3. se hace `trim()`;
-4. si hay contenido, se convierte a `long`;
-5. se lee el operador de la última fila.
-
-Ejemplo:
-
-```text
-123
- 45
-  6
-*
-```
-
-se interpreta como:
-
-```text
-123 * 45 * 6
-```
-
----
-
-### Parte 2: lectura vertical
-
-Para cada bloque detectado:
-
-1. se recorren las columnas de derecha a izquierda;
-2. en cada columna, se leen los dígitos de arriba hacia abajo;
-3. cada columna con dígitos forma un número;
-4. se lee el operador de la última fila.
-
-Ejemplo:
-
-```text
-123
- 45
-  6
-*
-```
-
-se interpreta como:
-
-```text
-356 * 24 * 1
-```
-
----
-
-## Diagrama de arquitectura
-
-```mermaid
-classDiagram
-    class Day06Main {
-        +main(args: String[]) void$
-    }
-
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
-
-    class MathOperation {
-        <<Enum>>
-        ADD
-        MULTIPLY
-        +applyTo(left: long, right: long) long
-        +fromSymbol(symbol: String) MathOperation$
-    }
-
-    class MathProblem {
-        <<Record>>
-        +numbers() List~Long~
-        +operation() MathOperation
-        +solve() long
-    }
-
-    class MathWorksheet {
-        <<Record>>
-        +rows() List~String~
-        +height() int
-        +width() int
-        +operationRowIndex() int
-        +isBlankColumn(column: int) boolean
-        +textAt(row: int, startColumn: int, endColumn: int) String
-        +characterAt(row: int, column: int) char
-    }
-
-    class MathWorksheetParser {
-        +parse(lines: List~String~) MathWorksheet
-    }
-
-    class HorizontalMathWorksheetProblemExtractor {
-        +extractFrom(worksheet: MathWorksheet) List~MathProblem~
-    }
-
-    class VerticalMathWorksheetProblemExtractor {
-        +extractFrom(worksheet: MathWorksheet) List~MathProblem~
-    }
-
-    class Day06Part1Solver {
-        -parser: MathWorksheetParser
-        -extractor: HorizontalMathWorksheetProblemExtractor
-        +solve(lines: List~String~) long
-    }
-
-    class Day06Part2Solver {
-        -parser: MathWorksheetParser
-        -extractor: VerticalMathWorksheetProblemExtractor
-        +solve(lines: List~String~) long
-    }
-
-    Day06Main ..> PuzzleSolver : usa
-    Day06Main ..> Day06Part1Solver : instancia
-    Day06Main ..> Day06Part2Solver : instancia
-
-    Day06Part1Solver ..|> PuzzleSolver : implementa
-    Day06Part2Solver ..|> PuzzleSolver : implementa
-
-    Day06Part1Solver --> MathWorksheetParser : usa
-    Day06Part1Solver --> HorizontalMathWorksheetProblemExtractor : usa
-
-    Day06Part2Solver --> MathWorksheetParser : usa
-    Day06Part2Solver --> VerticalMathWorksheetProblemExtractor : usa
-
-    MathWorksheetParser --> MathWorksheet : crea
-
-    HorizontalMathWorksheetProblemExtractor --> MathWorksheet : lee
-    HorizontalMathWorksheetProblemExtractor --> MathProblem : crea
-
-    VerticalMathWorksheetProblemExtractor --> MathWorksheet : lee
-    VerticalMathWorksheetProblemExtractor --> MathProblem : crea
-
-    MathProblem --> MathOperation : usa
-```
-
----
-
-## Entrada del programa
-
-El archivo de entrada debe colocarse en:
-
-```text
-src/main/resources/day06/input.txt
-```
-
-El contenido debe conservar los espacios del enunciado.
-
-Ejemplo:
-
-```text
-123 328  51 64 
- 45 64  387 23 
-  6 98  215 314
-*   +   *   +  
-```
-
-No se debe usar `trim()` sobre las líneas completas del input, porque los espacios iniciales y finales pueden formar parte de la estructura de columnas.
-
----
-
-## Ejecución en IntelliJ IDEA
-
-Para ejecutar el día 6:
-
-1. abrir el archivo:
-
-```text
-src/main/java/es/ulpgc/aoc2025/day06/Day06Main.java
-```
-
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text
-Run 'Day06Main.main()'
-```
-
-La salida tendrá este formato:
-
-```text
-Day 06 - Part 1: 5322004718681
-Day 06 - Part 2: 9876636978528
-```
-
----
-
-## Ejecución con Maven
-
-Para ejecutar los tests:
-
-```bash
-mvn test
-```
-
----
-
-## Tests
-
-El proyecto incluye tests separados para cada parte:
-
-```text
-Day06Part1SolverTest.java
-Day06Part2SolverTest.java
-```
-
-Los tests usan el ejemplo oficial:
-
-```text
-123 328  51 64 
- 45 64  387 23 
-  6 98  215 314
-*   +   *   +  
-```
-
-Resultado esperado para la parte 1:
-
-```text
-4277556
-```
-
-Resultado esperado para la parte 2:
-
-```text
-3263827
-```
-
----
-
-## Error común: filas con anchura distinta
-
-Durante el desarrollo puede aparecer este error:
-
-```text
-IllegalArgumentException: All rows must have the same width
-```
-
-Esto ocurre porque algunas líneas del input pueden perder espacios finales al copiarse o guardarse en el editor.
-
-Como el día 6 depende de columnas, todas las filas deben tener la misma anchura.
-
-La solución aplicada es normalizar el ancho en `MathWorksheetParser`:
-
-```java
-return new MathWorksheet(normalizeWidth(rows));
-```
-
-El parser rellena con espacios a la derecha hasta que todas las filas tengan la anchura máxima.
-
----
-
-## Convención para próximos días
-
-Cada día del Advent of Code seguirá la misma estructura:
-
-```text
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
-
-Ejemplo para el día 7:
-
-```text
-day07
-├── Day07Main.java
-├── common
-├── part1
-└── part2
-```
-
-Cuando una clase pueda compartirse sin modificar su comportamiento, se coloca en `common`.
-
-Cuando una parte requiera modificar mucho el comportamiento de una clase común, se crea una clase específica dentro de `part1` o `part2`.
-
-Cuando el cambio sea pequeño y coherente con la responsabilidad de la clase, se añade directamente a la clase común y se marca con un comentario.
-
-En este día:
-
-```text
-MathWorksheet.characterAt(...) → añadido pequeño en common
-HorizontalMathWorksheetProblemExtractor → específico de part1
-VerticalMathWorksheetProblemExtractor → específico de part2
-```
-
----
-
-## Conclusión
-
-La solución del día 6 está organizada para separar claramente el modelo común de la hoja y las dos formas distintas de interpretarla.
-
-La parte 1 interpreta los problemas horizontalmente, mientras que la parte 2 los interpreta verticalmente y de derecha a izquierda.
-
-La decisión más importante de diseño es no mezclar ambas interpretaciones en una única clase común. Por eso se crean dos extractores específicos, uno para cada parte.
-
-Esta estructura mantiene el proyecto modular, evita efectos secundarios entre partes y facilita seguir añadiendo nuevos días.
+El diseño separa correctamente el modelo matemático, la hoja de entrada, el parseo, la extracción de problemas y la resolución de cada parte. Esto permite que el código sea fácil de entender, probar, mantener y defender en una explicación oral.
