@@ -1,29 +1,18 @@
-# Advent of Code 2025 - Day 7: Laboratories
+# Día 7: Laboratories
 
-Este proyecto contiene la solución para el **Día 7** del Advent of Code 2025: **Laboratories**.
+En el séptimo día del Advent of Code 2025, el problema se desarrolla en un laboratorio de teletransportación del Polo Norte. Al entrar en una plataforma de teletransporte, acabas atrapado en una sala sin puertas. Para reparar el teletransportador, necesitas analizar un colector de taquiones.
 
-El problema consiste en analizar un diagrama de un manifold de taquiones. Un haz o partícula de taquiones entra por la posición marcada con `S` y siempre avanza hacia abajo. En el mapa pueden aparecer divisores, representados con `^`, que modifican el comportamiento del haz.
+El input del problema es un diagrama del colector. En él aparecen distintos caracteres:
 
-El día está dividido en dos partes:
+* `S`: posición inicial por donde entra el rayo de taquiones.
+* `.`: espacio vacío por donde el rayo puede avanzar.
+* `^`: divisor o splitter, que divide el rayo en dos caminos.
 
-* **Parte 1**: contar cuántas veces se divide el haz clásico de taquiones.
-* **Parte 2**: contar cuántas líneas temporales se generan en un manifold cuántico.
-
----
-
-## Descripción del problema
-
-La entrada es un diagrama formado por caracteres:
-
-```text id="fcr8po"
-. → espacio vacío
-S → posición inicial del haz
-^ → splitter o divisor
-```
+Los rayos de taquiones siempre se mueven hacia abajo. Si un rayo encuentra un splitter, el rayo se detiene y se generan dos nuevos rayos: uno desde la posición inmediata a la izquierda y otro desde la posición inmediata a la derecha.
 
 Ejemplo:
 
-```text id="uxr9x7"
+```text id="d7-example-1"
 .......S.......
 ...............
 .......^.......
@@ -42,40 +31,21 @@ Ejemplo:
 ...............
 ```
 
-El haz empieza en `S` y se mueve siempre hacia abajo.
-
-Cuando encuentra un `^`, el haz se detiene en esa posición y salen dos nuevos haces:
-
-```text id="rn90dt"
-uno hacia la izquierda
-uno hacia la derecha
-```
-
-A partir de ahí, esos nuevos haces continúan bajando.
-
 ---
 
 ## Parte 1
 
-En la primera parte se analiza un manifold clásico.
+En la primera parte, el objetivo es contar cuántas veces se divide el rayo de taquiones.
 
-Cuando varios haces llegan a la misma posición o columna, se consideran como un único haz activo. Por eso, para simular esta parte, basta con mantener el conjunto de columnas activas en cada fila.
+El rayo empieza en la posición marcada con `S` y avanza hacia abajo. Cuando encuentra un splitter `^`, se cuenta una división y el rayo se separa en dos nuevos rayos, uno hacia la columna izquierda y otro hacia la columna derecha.
 
-La pregunta es:
+Si varios rayos llegan a la misma posición, se consideran como un único rayo activo en esa columna para continuar el proceso.
 
-```text id="zm02b9"
-¿Cuántas veces se divide el haz?
-```
+En el ejemplo oficial, el rayo se divide un total de `21` veces.
 
-Con el ejemplo oficial, el resultado es:
+Con el input real, el resultado obtenido para la parte 1 fue:
 
-```text id="n9ptsp"
-21
-```
-
-Con el input real del usuario, el resultado de la parte 1 es:
-
-```text id="shq4ho"
+```text id="d7-part1-result"
 1626
 ```
 
@@ -83,901 +53,349 @@ Con el input real del usuario, el resultado de la parte 1 es:
 
 ## Parte 2
 
-En la segunda parte, el manifold es cuántico.
+En la segunda parte, el colector deja de interpretarse como un sistema clásico y pasa a ser un colector cuántico.
 
-Ahora solo se envía una partícula, pero cada vez que llega a un splitter, el tiempo se divide en dos líneas temporales:
+Ahora no se envían múltiples rayos, sino una única partícula de taquiones. Cada vez que la partícula llega a un splitter, el tiempo se divide en dos líneas temporales:
 
-```text id="q5iwwy"
-una línea temporal donde la partícula va a la izquierda
-otra línea temporal donde la partícula va a la derecha
-```
+* En una línea temporal, la partícula va hacia la izquierda.
+* En la otra línea temporal, la partícula va hacia la derecha.
 
-A diferencia de la parte 1, si varias líneas temporales llegan a la misma columna, **no se fusionan**. Hay que conservar la multiplicidad.
+El objetivo ya no es contar cuántos splitters se activan, sino cuántas líneas temporales existen al final de todos los posibles recorridos.
 
-La pregunta es:
+En el ejemplo oficial, la partícula acaba en `40` líneas temporales distintas.
 
-```text id="r56zq2"
-¿Cuántas líneas temporales quedan activas al final?
-```
+Con el input real, el resultado obtenido para la parte 2 fue:
 
-Con el ejemplo oficial, el resultado es:
-
-```text id="hi8bsm"
-40
-```
-
-Con el input real del usuario, el resultado de la parte 2 es:
-
-```text id="c54c6u"
+```text id="d7-part2-result"
 48989920237096
 ```
 
 ---
 
-## Diseño y arquitectura
+# Estructura del proyecto
 
-La solución mantiene la estructura modular usada en los días anteriores:
+La solución del Día 7 mantiene la misma estructura modular usada en los días anteriores:
 
-```text id="ogfs7w"
+```text id="d7-structure"
 day07
 ├── Day07Main.java
 ├── common
+│   ├── Position.java
+│   ├── TachyonManifold.java
+│   └── TachyonManifoldParser.java
 ├── part1
+│   ├── Day07Part1Solver.java
+│   └── TachyonSplitCounter.java
 └── part2
+    ├── Day07Part2Solver.java
+    └── QuantumTimelineCounter.java
 ```
 
-La parte común contiene el modelo del manifold, el parser y la posición.
+La idea principal es separar:
 
-La parte 1 y la parte 2 tienen clases específicas porque la simulación cambia bastante:
-
-```text id="wbe6dd"
-Parte 1 → se cuentan divisiones de haces clásicos
-Parte 2 → se cuentan líneas temporales con multiplicidad
-```
-
-Por tanto, se evita modificar `TachyonSplitCounter` para adaptarlo a la parte 2. En su lugar, se crea una clase nueva:
-
-```text id="oxitvy"
-QuantumTimelineCounter
-```
-
-Esto sigue la regla del proyecto:
-
-```text id="w1y85j"
-Si una clase necesita una modificación grande para una nueva parte,
-se crea una clase específica en part1 o part2.
-```
+* El punto de entrada del día.
+* Las clases comunes del dominio.
+* El parseo del diagrama.
+* La lógica específica de la parte 1.
+* La lógica específica de la parte 2.
 
 ---
 
-## Principios aplicados
+# Clases del paquete `day07.common`
 
-### Single Responsibility Principle, SRP
-
-Cada clase tiene una única responsabilidad:
-
-* `Day07Main`: ejecuta el día 7 y muestra los resultados.
-* `Position`: representa una posición dentro del manifold.
-* `TachyonManifold`: representa el diagrama del manifold.
-* `TachyonManifoldParser`: convierte el input textual en un `TachyonManifold`.
-* `TachyonSplitCounter`: cuenta las divisiones de haces en la parte 1.
-* `QuantumTimelineCounter`: cuenta líneas temporales en la parte 2.
-* `Day07Part1Solver`: resuelve únicamente la parte 1.
-* `Day07Part2Solver`: resuelve únicamente la parte 2.
-
-Esta separación permite entender, probar y modificar cada pieza de forma aislada.
+El paquete `day07.common` contiene las clases comunes utilizadas por ambas partes.
 
 ---
 
-### Open/Closed Principle, OCP
+## `Position`
 
-La parte 2 se añade sin modificar la lógica de la parte 1.
+El record `Position` representa una posición dentro del diagrama del colector.
 
-La parte 1 conserva su clase:
+Está formado por dos valores:
 
-```text id="gtj9rv"
-TachyonSplitCounter
+```java id="d7-position-record"
+public record Position(int row, int column)
 ```
 
-La parte 2 introduce una nueva clase:
+* `row`: fila de la posición.
+* `column`: columna de la posición.
 
-```text id="v9xhej"
-QuantumTimelineCounter
+Además, incluye métodos que permiten obtener posiciones cercanas:
+
+```java id="d7-position-methods"
+public Position below()
+public Position left()
+public Position right()
 ```
 
-Así, el código existente queda cerrado a modificaciones innecesarias, pero el sistema sigue abierto a extensión.
+Estos métodos ayudan a expresar los movimientos del rayo de forma clara.
 
 ---
 
-### Dependency Inversion Principle, DIP
+## `TachyonManifold`
 
-Los solvers implementan la interfaz común:
+El record `TachyonManifold` representa el diagrama completo del colector de taquiones.
 
-```java id="ksp9xp"
-PuzzleSolver
+Internamente almacena una lista de filas:
+
+```java id="d7-manifold-record"
+public record TachyonManifold(List<String> rows)
 ```
 
-Esto permite que el `Main` pueda ejecutarlos de manera uniforme:
+Esta clase valida que el diagrama sea correcto:
 
-```java id="out7cf"
+* La lista de filas no puede ser `null`.
+* La lista de filas no puede estar vacía.
+* Ninguna fila puede ser `null`.
+* Todas las filas deben tener la misma anchura.
+* Solo se permiten los caracteres `.`, `S` y `^`.
+* Debe existir exactamente una posición inicial `S`.
+
+Además, copia la lista de filas usando `List.copyOf`, evitando modificaciones externas.
+
+Sus métodos principales son:
+
+```java id="d7-manifold-methods"
+public int height()
+public int width()
+public Position startPosition()
+public boolean hasSplitterAt(Position position)
+public boolean contains(Position position)
+```
+
+`startPosition` localiza la posición inicial `S`.
+
+`hasSplitterAt` comprueba si en una posición concreta hay un splitter.
+
+`contains` comprueba si una posición está dentro de los límites del diagrama.
+
+---
+
+## `TachyonManifoldParser`
+
+La clase `TachyonManifoldParser` se encarga de transformar las líneas del input en un objeto `TachyonManifold`.
+
+Su método principal es:
+
+```java id="d7-parser"
+public TachyonManifold parse(List<String> lines)
+```
+
+El parser ignora las líneas en blanco, elimina espacios innecesarios con `trim` y construye una lista de filas.
+
+Después crea un `TachyonManifold`, delegando en esta clase la validación del diagrama.
+
+---
+
+# Clases del paquete `day07.part1`
+
+El paquete `day07.part1` contiene la solución específica de la primera parte.
+
+---
+
+## `Day07Part1Solver`
+
+La clase `Day07Part1Solver` resuelve la primera parte del Día 7.
+
+Implementa la interfaz común `PuzzleSolver`.
+
+Su método `solve` realiza los siguientes pasos:
+
+1. Usa `TachyonManifoldParser` para convertir el input en un `TachyonManifold`.
+2. Usa `TachyonSplitCounter` para contar cuántas veces se divide el rayo.
+3. Devuelve el total de divisiones.
+
+Esta clase actúa como coordinadora de la parte 1.
+
+---
+
+## `TachyonSplitCounter`
+
+La clase `TachyonSplitCounter` contiene la lógica específica para contar divisiones clásicas del rayo de taquiones.
+
+Su método principal es:
+
+```java id="d7-split-counter"
+public long countSplitsIn(TachyonManifold manifold)
+```
+
+El algoritmo funciona así:
+
+1. Localiza la posición inicial `S`.
+2. Guarda la columna inicial como columna activa.
+3. Recorre el diagrama fila a fila hacia abajo.
+4. Para cada columna activa, comprueba la posición correspondiente.
+5. Si la posición contiene un splitter, incrementa el contador de divisiones.
+6. Desde ese splitter, genera dos nuevas columnas activas: izquierda y derecha.
+7. Si no hay splitter, el rayo continúa en la misma columna.
+8. Repite el proceso hasta salir del diagrama.
+
+La clase usa un `Set<Integer>` para almacenar las columnas activas. Esto evita duplicar rayos cuando varios caminos llegan a la misma columna en la misma fila.
+
+---
+
+# Clases del paquete `day07.part2`
+
+El paquete `day07.part2` contiene la solución específica de la segunda parte.
+
+---
+
+## `Day07Part2Solver`
+
+La clase `Day07Part2Solver` resuelve la segunda parte del Día 7.
+
+También implementa la interfaz `PuzzleSolver`.
+
+Su método `solve` realiza los siguientes pasos:
+
+1. Usa `TachyonManifoldParser` para convertir el input en un `TachyonManifold`.
+2. Usa `QuantumTimelineCounter` para contar las líneas temporales finales.
+3. Devuelve el total de timelines.
+
+Esta clase actúa como coordinadora de la parte 2.
+
+---
+
+## `QuantumTimelineCounter`
+
+La clase `QuantumTimelineCounter` contiene la lógica específica de la interpretación cuántica del colector.
+
+Su método principal es:
+
+```java id="d7-quantum-counter"
+public long countTimelinesIn(TachyonManifold manifold)
+```
+
+A diferencia de la parte 1, aquí no basta con saber qué columnas están activas. Hay que saber cuántas líneas temporales llegan a cada columna.
+
+Para ello, la clase usa un mapa:
+
+```java id="d7-map"
+Map<Integer, Long> activeTimelinesByColumn
+```
+
+La clave representa la columna y el valor representa cuántas timelines llegan a esa columna.
+
+El algoritmo funciona así:
+
+1. Localiza la posición inicial `S`.
+2. Crea un mapa con una única timeline en la columna inicial.
+3. Recorre el diagrama fila a fila.
+4. Para cada columna activa, obtiene cuántas timelines llegan a ella.
+5. Si hay un splitter, esas timelines se duplican hacia izquierda y derecha.
+6. Si no hay splitter, las timelines continúan hacia abajo.
+7. Cuando varias timelines llegan a la misma columna, se suman.
+8. Al final, se suman todas las timelines activas restantes.
+
+Esta clase permite resolver la parte 2 sin enumerar cada camino individualmente, agrupando las timelines por columna.
+
+---
+
+# Clase del paquete `day07`
+
+El paquete `day07` contiene la clase principal del Día 7.
+
+---
+
+## `Day07Main`
+
+La clase `Day07Main` es el punto de entrada para ejecutar la solución completa del Día 7.
+
+El método `main` realiza los siguientes pasos:
+
+1. Lee todas las líneas del archivo `src/main/resources/day07/input.txt`.
+2. Crea una instancia de `Day07Part1Solver`.
+3. Crea una instancia de `Day07Part2Solver`.
+4. Ejecuta el método `solve` de ambos solvers.
+5. Guarda los resultados.
+6. Imprime los resultados por consola.
+
+Esta clase utiliza la interfaz `PuzzleSolver` para referenciar ambos solvers:
+
+```java id="d7-main-solvers"
 PuzzleSolver part1Solver = new Day07Part1Solver();
 PuzzleSolver part2Solver = new Day07Part2Solver();
 ```
 
-El punto de entrada no necesita conocer los detalles internos de la simulación.
-
 ---
 
-### DRY
+# Interfaz común del proyecto
 
-La lógica común del día 7 se mantiene en:
+El proyecto utiliza la interfaz común `PuzzleSolver`, ubicada en el paquete `aoc2025.common`.
 
-```text id="p91pws"
-es.ulpgc.aoc2025.day07.common
-```
+Esta interfaz define el contrato común para todos los solvers del Advent of Code:
 
-Aquí se encuentran:
-
-* `Position`
-* `TachyonManifold`
-* `TachyonManifoldParser`
-
-Estas clases se reutilizan tanto en la parte 1 como en la parte 2.
-
-La diferencia entre partes se mantiene separada en sus respectivos paquetes.
-
----
-
-### Código expresivo
-
-Los nombres de las clases representan directamente los conceptos del problema:
-
-* `TachyonManifold`: el diagrama del manifold.
-* `Position`: una posición concreta.
-* `TachyonSplitCounter`: contador de divisiones del haz.
-* `QuantumTimelineCounter`: contador de líneas temporales cuánticas.
-
-Esto hace que el código sea más fácil de leer y relacionar con el enunciado.
-
----
-
-## Estructura del proyecto
-
-```text id="hl1efv"
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day07
-│   │                   ├── Day07Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── Position.java
-│   │                   │   ├── TachyonManifold.java
-│   │                   │   └── TachyonManifoldParser.java
-│   │                   │
-│   │                   ├── part1
-│   │                   │   ├── Day07Part1Solver.java
-│   │                   │   └── TachyonSplitCounter.java
-│   │                   │
-│   │                   └── part2
-│   │                       ├── Day07Part2Solver.java
-│   │                       └── QuantumTimelineCounter.java
-│   │
-│   └── resources
-│       └── day07
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day07
-                        ├── part1
-                        │   └── Day07Part1SolverTest.java
-                        └── part2
-                            └── Day07Part2SolverTest.java
-```
-
----
-
-## Paquetes principales
-
-### `es.ulpgc.aoc2025.common`
-
-Contiene código común a todo el proyecto Advent of Code.
-
-Actualmente contiene:
-
-```text id="nbic0d"
-PuzzleSolver.java
-```
-
-Esta interfaz define el contrato general de todos los solvers:
-
-```java id="ri4bpz"
+```java id="d7-puzzle-solver"
 long solve(List<String> lines);
 ```
 
----
-
-### `es.ulpgc.aoc2025.day07`
-
-Contiene el punto de entrada específico del día 7:
-
-```text id="wz3j23"
-Day07Main.java
-```
-
-Esta clase se encarga de:
-
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. crear el solver de la parte 2;
-4. ejecutar ambos solvers;
-5. mostrar los resultados por consola.
+En el Día 7, tanto `Day07Part1Solver` como `Day07Part2Solver` implementan esta interfaz.
 
 ---
 
-### `es.ulpgc.aoc2025.day07.common`
+# Fundamentos de diseño utilizados
 
-Contiene las clases comunes del dominio del día 7.
+En la solución del Día 7 se utilizan los siguientes fundamentos de diseño:
 
-Estas clases no dependen de una parte concreta.
-
----
-
-### `es.ulpgc.aoc2025.day07.part1`
-
-Contiene la solución específica de la primera parte.
-
----
-
-### `es.ulpgc.aoc2025.day07.part2`
-
-Contiene la solución específica de la segunda parte.
+* Alta cohesión.
+* Bajo acoplamiento.
+* Modularidad.
+* Código expresivo.
+* Abstracción.
+* Encapsulación.
+* Diseño por contrato.
+* Inmutabilidad.
+* Eficiencia algorítmica.
+* Agrupación de estados.
 
 ---
 
-## Clases principales
+# Principios de diseño aplicados
 
-### `Position`
+En la solución del Día 7 se aplican los siguientes principios de diseño:
 
-Representa una posición dentro del manifold.
-
-```java id="m2dzni"
-package es.ulpgc.aoc2025.day07.common;
-
-public record Position(int row, int column) {
-
-    public Position below() {
-        return new Position(row + 1, column);
-    }
-
-    public Position left() {
-        return new Position(row, column - 1);
-    }
-
-    public Position right() {
-        return new Position(row, column + 1);
-    }
-}
-```
-
-Responsabilidades:
-
-* almacenar fila y columna;
-* representar posiciones vecinas;
-* permitir que la simulación se exprese con claridad.
-
-No valida posiciones negativas porque un haz puede salir del manifold. La comprobación de límites pertenece a `TachyonManifold`.
+* Principio de Responsabilidad Única, SRP.
+* Principio Abierto/Cerrado, OCP.
+* Principio de Sustitución de Liskov, LSP.
+* Principio de Segregación de Interfaces, ISP.
+* Principio de Inversión de Dependencias, DIP.
+* Composición sobre herencia.
+* Principio DRY.
+* Ley de Demeter.
+* Principio YAGNI.
+* Principio de mínima sorpresa.
 
 ---
 
-### `TachyonManifold`
+# Patrones de diseño aplicados
 
-Representa el diagrama del manifold.
+En la solución del Día 7 se utilizan los siguientes patrones de diseño:
 
-```java id="zqzex2"
-package es.ulpgc.aoc2025.day07.common;
-
-import java.util.List;
-
-public record TachyonManifold(List<String> rows) {
-
-    private static final char START = 'S';
-    private static final char SPLITTER = '^';
-
-    public TachyonManifold {
-        if (rows == null) {
-            throw new IllegalArgumentException("Rows cannot be null");
-        }
-
-        if (rows.isEmpty()) {
-            throw new IllegalArgumentException("Rows cannot be empty");
-        }
-
-        int width = rows.getFirst().length();
-
-        for (String row : rows) {
-            if (row == null) {
-                throw new IllegalArgumentException("Row cannot be null");
-            }
-
-            if (row.length() != width) {
-                throw new IllegalArgumentException("All rows must have the same width");
-            }
-
-            if (!row.matches("[.S^]+")) {
-                throw new IllegalArgumentException("Rows can only contain '.', 'S' and '^'");
-            }
-        }
-
-        if (countStartPositionsIn(rows) != 1) {
-            throw new IllegalArgumentException("The manifold must contain exactly one start position");
-        }
-
-        rows = List.copyOf(rows);
-    }
-
-    public int height() {
-        return rows.size();
-    }
-
-    public int width() {
-        return rows.getFirst().length();
-    }
-
-    public Position startPosition() {
-        for (int row = 0; row < height(); row++) {
-            int column = rows.get(row).indexOf(START);
-
-            if (column != -1) {
-                return new Position(row, column);
-            }
-        }
-
-        throw new IllegalStateException("Start position not found");
-    }
-
-    public boolean hasSplitterAt(Position position) {
-        return contains(position)
-                && rows.get(position.row()).charAt(position.column()) == SPLITTER;
-    }
-
-    public boolean contains(Position position) {
-        return 0 <= position.row() && position.row() < height()
-                && 0 <= position.column() && position.column() < width();
-    }
-
-    private static int countStartPositionsIn(List<String> rows) {
-        int count = 0;
-
-        for (String row : rows) {
-            for (int column = 0; column < row.length(); column++) {
-                if (row.charAt(column) == START) {
-                    count++;
-                }
-            }
-        }
-
-        return count;
-    }
-}
-```
-
-Responsabilidades:
-
-* almacenar las filas del manifold;
-* validar el formato;
-* localizar la posición inicial;
-* comprobar si una posición contiene un splitter;
-* comprobar si una posición está dentro del mapa.
+* Iterator.
+* Strategy.
+* Command, aplicado parcialmente.
 
 ---
 
-### `TachyonManifoldParser`
+# Patrones no aplicados
 
-Convierte las líneas del input en un `TachyonManifold`.
+En la solución del Día 7 no se aplican los siguientes patrones de diseño:
 
-```java id="q955r0"
-package es.ulpgc.aoc2025.day07.common;
-
-import java.util.ArrayList;
-import java.util.List;
-
-public class TachyonManifoldParser {
-
-    public TachyonManifold parse(List<String> lines) {
-        List<String> rows = new ArrayList<>();
-
-        for (String line : lines) {
-            if (!line.isBlank()) {
-                rows.add(line.trim());
-            }
-        }
-
-        return new TachyonManifold(rows);
-    }
-}
-```
-
-En este día sí se puede usar `trim()` porque el mapa está formado por caracteres visibles `.` `S` y `^`. A diferencia del día 6, los espacios no forman parte del formato del problema.
+* Singleton.
+* Factory Method.
+* Adapter.
+* Decorator.
+* Observer.
+* Template Method.
 
 ---
 
-### `TachyonSplitCounter`
+# Conclusión
 
-Cuenta las divisiones del haz en la parte 1.
+La solución del Día 7 está organizada de forma clara y modular.
 
-```java id="eoijno"
-package es.ulpgc.aoc2025.day07.part1;
+La primera parte cuenta cuántas veces se divide el rayo de taquiones usando un conjunto de columnas activas.
 
-import es.ulpgc.aoc2025.day07.common.Position;
-import es.ulpgc.aoc2025.day07.common.TachyonManifold;
+La segunda parte calcula cuántas líneas temporales quedan activas usando un mapa que agrupa el número de timelines por columna.
 
-import java.util.HashSet;
-import java.util.Set;
-
-public class TachyonSplitCounter {
-
-    public long countSplitsIn(TachyonManifold manifold) {
-        Position start = manifold.startPosition();
-
-        Set<Integer> activeColumns = new HashSet<>();
-        activeColumns.add(start.column());
-
-        long splits = 0;
-
-        for (int row = start.row() + 1; row < manifold.height(); row++) {
-            Set<Integer> nextActiveColumns = new HashSet<>();
-
-            for (int column : activeColumns) {
-                Position position = new Position(row, column);
-
-                if (!manifold.contains(position)) {
-                    continue;
-                }
-
-                if (manifold.hasSplitterAt(position)) {
-                    splits++;
-                    nextActiveColumns.add(column - 1);
-                    nextActiveColumns.add(column + 1);
-                } else {
-                    nextActiveColumns.add(column);
-                }
-            }
-
-            activeColumns = nextActiveColumns;
-        }
-
-        return splits;
-    }
-}
-```
-
-La clave de esta clase es usar:
-
-```java id="oclt9h"
-Set<Integer>
-```
-
-porque en la parte 1 solo importa si una columna está activa o no.
-
----
-
-### `QuantumTimelineCounter`
-
-Cuenta las líneas temporales en la parte 2.
-
-```java id="hjrxsq"
-package es.ulpgc.aoc2025.day07.part2;
-
-import es.ulpgc.aoc2025.day07.common.Position;
-import es.ulpgc.aoc2025.day07.common.TachyonManifold;
-
-import java.util.HashMap;
-import java.util.Map;
-
-public class QuantumTimelineCounter {
-
-    public long countTimelinesIn(TachyonManifold manifold) {
-        Position start = manifold.startPosition();
-
-        Map<Integer, Long> activeTimelinesByColumn = new HashMap<>();
-        activeTimelinesByColumn.put(start.column(), 1L);
-
-        for (int row = start.row() + 1; row < manifold.height(); row++) {
-            Map<Integer, Long> nextTimelinesByColumn = new HashMap<>();
-
-            for (Map.Entry<Integer, Long> entry : activeTimelinesByColumn.entrySet()) {
-                int column = entry.getKey();
-                long timelines = entry.getValue();
-
-                Position position = new Position(row, column);
-
-                if (!manifold.contains(position)) {
-                    continue;
-                }
-
-                if (manifold.hasSplitterAt(position)) {
-                    addTimelinesTo(nextTimelinesByColumn, column - 1, timelines, manifold);
-                    addTimelinesTo(nextTimelinesByColumn, column + 1, timelines, manifold);
-                } else {
-                    addTimelinesTo(nextTimelinesByColumn, column, timelines, manifold);
-                }
-            }
-
-            activeTimelinesByColumn = nextTimelinesByColumn;
-        }
-
-        return totalTimelinesIn(activeTimelinesByColumn);
-    }
-
-    private void addTimelinesTo(
-            Map<Integer, Long> timelinesByColumn,
-            int column,
-            long timelines,
-            TachyonManifold manifold
-    ) {
-        if (column < 0 || column >= manifold.width()) {
-            return;
-        }
-
-        timelinesByColumn.merge(column, timelines, Long::sum);
-    }
-
-    private long totalTimelinesIn(Map<Integer, Long> timelinesByColumn) {
-        long total = 0;
-
-        for (long timelines : timelinesByColumn.values()) {
-            total += timelines;
-        }
-
-        return total;
-    }
-}
-```
-
-La clave de esta clase es usar:
-
-```java id="nj4fcv"
-Map<Integer, Long>
-```
-
-porque en la parte 2 importa cuántas líneas temporales llegan a cada columna.
-
----
-
-### `Day07Part1Solver`
-
-Resuelve la primera parte del problema.
-
-Su algoritmo es:
-
-1. parsear el manifold;
-2. localizar la posición inicial;
-3. simular el avance de los haces;
-4. contar cuántas veces se produce una división.
-
----
-
-### `Day07Part2Solver`
-
-Resuelve la segunda parte del problema.
-
-Su algoritmo es:
-
-1. parsear el manifold;
-2. localizar la posición inicial;
-3. simular el avance de las líneas temporales;
-4. sumar cuántas líneas temporales quedan al final.
-
----
-
-## Estrategia de resolución
-
-### Parte 1: haces clásicos
-
-En la parte 1 varios haces pueden terminar ocupando la misma columna. En ese caso, se consideran como un único haz activo.
-
-Por eso se usa:
-
-```java id="nmk0my"
-Set<Integer> activeColumns
-```
-
-Cuando un haz encuentra un splitter:
-
-```text id="f5gd13"
-^
-```
-
-se incrementa el contador de divisiones y se activan las columnas:
-
-```text id="o0xhtw"
-column - 1
-column + 1
-```
-
----
-
-### Parte 2: líneas temporales cuánticas
-
-En la parte 2, cada splitter duplica líneas temporales.
-
-Si varias líneas temporales llegan a la misma columna, no se fusionan: se acumulan.
-
-Por eso se usa:
-
-```java id="rpwqpp"
-Map<Integer, Long> activeTimelinesByColumn
-```
-
-La clave del mapa es la columna, y el valor es el número de líneas temporales que llegan a esa columna.
-
-Cuando una posición contiene un splitter, las líneas temporales de esa columna se reparten en dos nuevas columnas:
-
-```text id="vh6ze7"
-column - 1
-column + 1
-```
-
-Cada una recibe el mismo número de líneas temporales que había en la columna original.
-
----
-
-## Diagrama de arquitectura
-
-```mermaid id="pqhrwu"
-classDiagram
-    class Day07Main {
-        +main(args: String[]) void$
-    }
-
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
-
-    class Position {
-        <<Record>>
-        +row() int
-        +column() int
-        +below() Position
-        +left() Position
-        +right() Position
-    }
-
-    class TachyonManifold {
-        <<Record>>
-        +rows() List~String~
-        +height() int
-        +width() int
-        +startPosition() Position
-        +hasSplitterAt(position: Position) boolean
-        +contains(position: Position) boolean
-    }
-
-    class TachyonManifoldParser {
-        +parse(lines: List~String~) TachyonManifold
-    }
-
-    class TachyonSplitCounter {
-        +countSplitsIn(manifold: TachyonManifold) long
-    }
-
-    class QuantumTimelineCounter {
-        +countTimelinesIn(manifold: TachyonManifold) long
-    }
-
-    class Day07Part1Solver {
-        -parser: TachyonManifoldParser
-        -splitCounter: TachyonSplitCounter
-        +solve(lines: List~String~) long
-    }
-
-    class Day07Part2Solver {
-        -parser: TachyonManifoldParser
-        -timelineCounter: QuantumTimelineCounter
-        +solve(lines: List~String~) long
-    }
-
-    Day07Main ..> PuzzleSolver : usa
-    Day07Main ..> Day07Part1Solver : instancia
-    Day07Main ..> Day07Part2Solver : instancia
-
-    Day07Part1Solver ..|> PuzzleSolver : implementa
-    Day07Part2Solver ..|> PuzzleSolver : implementa
-
-    TachyonManifoldParser --> TachyonManifold : crea
-    TachyonManifold --> Position : devuelve
-
-    Day07Part1Solver --> TachyonManifoldParser : usa
-    Day07Part1Solver --> TachyonSplitCounter : usa
-    TachyonSplitCounter --> TachyonManifold : consulta
-    TachyonSplitCounter --> Position : usa
-
-    Day07Part2Solver --> TachyonManifoldParser : usa
-    Day07Part2Solver --> QuantumTimelineCounter : usa
-    QuantumTimelineCounter --> TachyonManifold : consulta
-    QuantumTimelineCounter --> Position : usa
-```
-
----
-
-## Entrada del programa
-
-El archivo de entrada debe colocarse en:
-
-```text id="y0pq6j"
-src/main/resources/day07/input.txt
-```
-
-El contenido debe estar formado por un mapa con los caracteres:
-
-```text id="kjc6ll"
-.
-S
-^
-```
-
-Ejemplo:
-
-```text id="wyaejy"
-.......S.......
-...............
-.......^.......
-...............
-......^.^......
-...............
-.....^.^.^.....
-...............
-....^.^...^....
-...............
-...^.^...^.^...
-...............
-..^...^.....^..
-...............
-.^.^.^.^.^...^.
-...............
-```
-
----
-
-## Ejecución en IntelliJ IDEA
-
-Para ejecutar el día 7:
-
-1. abrir el archivo:
-
-```text id="g457rk"
-src/main/java/es/ulpgc/aoc2025/day07/Day07Main.java
-```
-
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text id="v7zb5o"
-Run 'Day07Main.main()'
-```
-
-La salida tendrá este formato:
-
-```text id="bzqq09"
-Day 07 - Part 1: 1626
-Day 07 - Part 2: 48989920237096
-```
-
----
-
-## Ejecución con Maven
-
-Para ejecutar los tests:
-
-```bash id="d9yr1d"
-mvn test
-```
-
----
-
-## Tests
-
-El proyecto incluye tests separados para cada parte:
-
-```text id="nn0l8u"
-Day07Part1SolverTest.java
-Day07Part2SolverTest.java
-```
-
-Los tests usan el ejemplo oficial:
-
-```text id="maj1ko"
-.......S.......
-...............
-.......^.......
-...............
-......^.^......
-...............
-.....^.^.^.....
-...............
-....^.^...^....
-...............
-...^.^...^.^...
-...............
-..^...^.....^..
-...............
-.^.^.^.^.^...^.
-...............
-```
-
-Resultado esperado para la parte 1:
-
-```text id="h4fgt4"
-21
-```
-
-Resultado esperado para la parte 2:
-
-```text id="hdrh8z"
-40
-```
-
----
-
-## Convención para próximos días
-
-Cada día del Advent of Code seguirá la misma estructura:
-
-```text id="xwrebr"
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
-
-Ejemplo para el día 8:
-
-```text id="hsrvfw"
-day08
-├── Day08Main.java
-├── common
-├── part1
-└── part2
-```
-
-Cuando una clase pueda compartirse sin modificar su comportamiento, se coloca en `common`.
-
-Cuando una parte requiera modificar mucho el comportamiento de una clase común, se crea una clase específica dentro de `part1` o `part2`.
-
-Cuando el cambio sea pequeño y coherente con la responsabilidad de la clase, se añade directamente a la clase común y se marca con un comentario.
-
-En este día:
-
-```text id="h07uck"
-TachyonManifold       → common
-TachyonManifoldParser → common
-Position              → common
-TachyonSplitCounter   → específico de part1
-QuantumTimelineCounter → específico de part2
-```
-
----
-
-## Conclusión
-
-La solución del día 7 está organizada para separar claramente el modelo común del manifold y las dos formas de interpretar el comportamiento de los taquiones.
-
-La parte 1 cuenta divisiones de haces clásicos usando un conjunto de columnas activas.
-
-La parte 2 cuenta líneas temporales cuánticas usando un mapa de columnas a multiplicidades.
-
-La decisión de diseño más importante es no modificar `TachyonSplitCounter` para resolver la parte 2, ya que el significado de la simulación cambia bastante. En su lugar, se crea `QuantumTimelineCounter`, manteniendo bajo acoplamiento, alta cohesión y una estructura preparada para seguir creciendo.
+El diseño separa correctamente el modelo del colector, el parseo del input, la lógica clásica de división y la lógica cuántica de timelines. Esto permite que el código sea fácil de entender, probar, mantener y defender en una explicación oral.
