@@ -1,22 +1,17 @@
-# Advent of Code 2025 - Day 12: Christmas Tree Farm
+# Día 12: Christmas Tree Farm
 
-Este proyecto contiene la solución para el **Día 12** del Advent of Code 2025: **Christmas Tree Farm**.
+En el duodécimo día del Advent of Code 2025, el problema se desarrolla en una gran granja subterránea de árboles de Navidad. Los elfos están decorando los árboles, pero necesitan comprobar si los regalos caben correctamente bajo cada árbol.
 
-A diferencia de otros días anteriores, este día solo tiene una parte. Por tanto, la estructura mantiene los paquetes `common` y `part1`, pero no se crea un paquete `part2`.
+Los regalos tienen formas irregulares representadas en una cuadrícula bidimensional. Cada forma se describe usando:
 
-El problema consiste en determinar cuántas regiones bajo árboles de Navidad pueden contener todos los regalos indicados. Cada regalo tiene una forma concreta, puede rotarse y reflejarse, y debe colocarse sobre una cuadrícula bidimensional sin solaparse con otros regalos.
+* `#`: parte ocupada por el regalo.
+* `.`: espacio vacío dentro del dibujo de la forma.
 
----
-
-## Descripción del problema
-
-La entrada se divide en dos secciones.
-
-La primera sección contiene las formas estándar de los regalos.
+Además, el input contiene regiones rectangulares bajo los árboles, junto con la cantidad de regalos de cada forma que deben colocarse en cada región.
 
 Ejemplo:
 
-```text id="bp3hmr"
+```text id="day12-example"
 0:
 ###
 ##.
@@ -26,844 +21,500 @@ Ejemplo:
 ###
 ##.
 .##
-```
 
-Cada forma empieza con su índice seguido de dos puntos:
+2:
+.##
+###
+##.
 
-```text id="gt5f81"
-0:
-```
+3:
+##.
+###
+##.
 
-Después aparece la forma visual del regalo.
+4:
+###
+#..
+###
 
-En la representación:
+5:
+###
+.#.
+###
 
-```text id="ziwf3m"
-# → celda ocupada por el regalo
-. → celda vacía dentro de su caja visual
-```
-
-La segunda sección contiene las regiones bajo los árboles y la cantidad de regalos de cada forma que deben colocarse.
-
-Ejemplo:
-
-```text id="1m28zu"
 4x4: 0 0 0 0 2 0
 12x5: 1 0 1 0 2 2
 12x5: 1 0 1 0 3 2
 ```
 
-Una línea como:
+La primera sección define las formas de los regalos. La segunda sección define las regiones bajo los árboles y cuántos regalos de cada tipo deben caber en ellas.
 
-```text id="wmmfim"
+Los regalos pueden rotarse y voltearse, pero deben colocarse alineados con la cuadrícula. No pueden solaparse entre sí.
+
+---
+
+## Parte 1
+
+En la primera parte, el objetivo es contar cuántas regiones pueden contener todos los regalos indicados.
+
+Para cada región, hay que comprobar si es posible colocar todos los regalos requeridos respetando estas condiciones:
+
+1. Cada regalo debe colocarse dentro de la región.
+2. Los regalos pueden rotarse.
+3. Los regalos pueden voltearse.
+4. Las partes `#` de dos regalos no pueden ocupar la misma celda.
+5. Las partes `.` de una forma no bloquean espacio.
+6. No se pueden apilar regalos.
+
+En el ejemplo oficial hay tres regiones:
+
+```text id="day12-regions"
+4x4: 0 0 0 0 2 0
 12x5: 1 0 1 0 2 2
+12x5: 1 0 1 0 3 2
 ```
 
-significa:
+Las dos primeras regiones pueden contener todos sus regalos, pero la tercera no.
 
-```text id="degtvz"
-región de anchura 12
-región de altura 5
+Por tanto, el resultado del ejemplo es:
 
-1 regalo de la forma 0
-0 regalos de la forma 1
-1 regalo de la forma 2
-0 regalos de la forma 3
-2 regalos de la forma 4
-2 regalos de la forma 5
-```
-
----
-
-## Objetivo
-
-Para cada región, hay que decidir si todos los regalos indicados pueden colocarse dentro de ella.
-
-Los regalos:
-
-* pueden rotarse;
-* pueden voltearse;
-* deben colocarse alineados con la cuadrícula;
-* no pueden solaparse en las celdas `#`;
-* sí pueden encajar usando los huecos `.` de otras formas, porque esos huecos no ocupan espacio real.
-
-La respuesta final es:
-
-```text id="0df90h"
-¿Cuántas regiones pueden contener todos los regalos indicados?
-```
-
----
-
-## Resultado
-
-Con el ejemplo oficial, el resultado es:
-
-```text id="93cpur"
+```text id="day12-example-result"
 2
 ```
 
-Con el input real del usuario, el resultado es:
+Con el input real, el resultado obtenido para la parte 1 fue:
 
-```text id="a7xjmn"
+```text id="day12-part1-result"
 544
 ```
 
-La salida esperada del programa es:
+---
 
-```text id="ggii7r"
-Day 12 - Part 1: 544
+## Parte 2
+
+En el enunciado del Día 12, la segunda parte no introduce una nueva tarea computacional como en los días anteriores.
+
+La historia continúa con la llegada de más elfos y estrellas para decorar los árboles, pero no se proporciona un nuevo cálculo, una nueva regla o un nuevo resultado que implementar.
+
+Por eso, en el código del proyecto solo existe la solución de la parte 1:
+
+```text id="day12-only-part1"
+Day12Part1Solver
 ```
+
+y la clase principal ejecuta únicamente esa parte.
 
 ---
 
-## Diseño general
+# Estructura del proyecto
 
-La solución mantiene la estructura usada en el resto del proyecto Advent of Code:
+La solución del Día 12 mantiene una estructura modular similar a la usada en los días anteriores:
 
-```text id="9p7kt6"
+```text id="day12-structure"
 day12
 ├── Day12Main.java
 ├── common
+│   ├── ChristmasTreeFarmReport.java
+│   ├── ChristmasTreeFarmReportParser.java
+│   ├── GridCell.java
+│   ├── PresentFootprint.java
+│   ├── PresentShape.java
+│   └── TreeRegionRequirement.java
 └── part1
+    ├── Day12Part1Solver.java
+    └── PresentPackingAnalyzer.java
 ```
 
-Como este día solo tiene una parte, no se crea `part2`.
+La idea principal es separar:
 
-La separación queda así:
-
-```text id="dnjiqs"
-common → modelo del problema y parser
-part1  → lógica concreta para comprobar si los regalos caben
-```
+* El punto de entrada del día.
+* Las clases comunes del dominio.
+* El parseo del informe.
+* La representación de formas y regiones.
+* La generación de transformaciones de los regalos.
+* La lógica específica de comprobación de empaquetado.
 
 ---
 
-## Estructura del proyecto
+# Clases del paquete `day12.common`
 
-```text id="a61pez"
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day12
-│   │                   ├── Day12Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── ChristmasTreeFarmReport.java
-│   │                   │   ├── ChristmasTreeFarmReportParser.java
-│   │                   │   ├── GridCell.java
-│   │                   │   ├── PresentFootprint.java
-│   │                   │   ├── PresentShape.java
-│   │                   │   └── TreeRegionRequirement.java
-│   │                   │
-│   │                   └── part1
-│   │                       ├── Day12Part1Solver.java
-│   │                       └── PresentPackingAnalyzer.java
-│   │
-│   └── resources
-│       └── day12
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day12
-                        └── part1
-                            └── Day12Part1SolverTest.java
-```
+El paquete `day12.common` contiene las clases compartidas del dominio del Día 12.
 
 ---
 
-## Paquetes principales
+## `GridCell`
 
-### `es.ulpgc.aoc2025.common`
+El record `GridCell` representa una celda dentro de una cuadrícula.
 
-Contiene código común a todo el proyecto.
+Está formado por:
 
-Actualmente contiene la interfaz:
-
-```text id="n2md4r"
-PuzzleSolver.java
+```java id="day12-gridcell"
+public record GridCell(int row, int column)
 ```
 
-Esta interfaz define el contrato común de todos los solvers:
-
-```java id="nuzwpz"
-long solve(List<String> lines);
-```
+Se usa para representar las posiciones ocupadas por una forma de regalo.
 
 ---
 
-### `es.ulpgc.aoc2025.day12`
+## `PresentFootprint`
 
-Contiene el punto de entrada específico del día 12:
+El record `PresentFootprint` representa la huella ocupada por una forma concreta de regalo.
 
-```text id="hvc991"
-Day12Main.java
+Está formado por una lista de celdas:
+
+```java id="day12-footprint"
+public record PresentFootprint(List<GridCell> cells)
 ```
 
-Esta clase se encarga de:
+Cada celda representa una posición ocupada por un `#`.
 
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. ejecutar el solver;
-4. mostrar el resultado por consola.
+Esta clase valida que:
+
+* La lista de celdas no sea `null`.
+* La lista no esté vacía.
+
+Además, ordena las celdas por fila y columna para tener una representación estable.
+
+Sus métodos principales son:
+
+```java id="day12-footprint-methods"
+public int area()
+public int height()
+public int width()
+```
+
+`area` devuelve el número de celdas ocupadas.
+
+`height` devuelve la altura de la huella.
+
+`width` devuelve la anchura de la huella.
 
 ---
 
-### `es.ulpgc.aoc2025.day12.common`
+## `PresentShape`
 
-Contiene las clases comunes del dominio del día 12.
+El record `PresentShape` representa una forma estándar de regalo.
 
-Aquí se modelan:
+Está formado por:
 
-* las formas de los regalos;
-* las celdas ocupadas;
-* las transformaciones de las piezas;
-* las regiones bajo los árboles;
-* el informe completo del problema;
-* el parser del input.
+```java id="day12-shape"
+public record PresentShape(int index, List<String> rows)
+```
+
+* `index`: índice de la forma.
+* `rows`: representación visual de la forma con `#` y `.`.
+
+Esta clase valida que:
+
+* El índice no sea negativo.
+* La lista de filas no sea `null`.
+* La lista de filas no esté vacía.
+* Todas las filas tengan la misma anchura.
+* Solo se usen los caracteres `.` y `#`.
+
+Su método:
+
+```java id="day12-shape-area"
+public int area()
+```
+
+calcula cuántas celdas ocupa realmente el regalo.
+
+Su método más importante es:
+
+```java id="day12-transformations"
+public List<PresentFootprint> transformations()
+```
+
+Este método genera todas las transformaciones posibles de la forma:
+
+* Rotaciones.
+* Reflejos.
+* Normalización de coordenadas.
+
+Para evitar duplicados, usa un `LinkedHashSet`.
 
 ---
 
-### `es.ulpgc.aoc2025.day12.part1`
+## `TreeRegionRequirement`
 
-Contiene la solución específica de la única parte del día.
+El record `TreeRegionRequirement` representa una región bajo un árbol y los regalos que deben caber en ella.
 
-Aquí se encuentra la lógica que decide si una región puede contener todos los regalos indicados.
+Está formado por:
+
+```java id="day12-region"
+public record TreeRegionRequirement(
+        int width,
+        int height,
+        List<Integer> quantities
+)
+```
+
+* `width`: anchura de la región.
+* `height`: altura de la región.
+* `quantities`: cantidad necesaria de cada forma de regalo.
+
+Esta clase valida que:
+
+* La anchura sea positiva.
+* La altura sea positiva.
+* La lista de cantidades no sea `null`.
+
+Sus métodos principales son:
+
+```java id="day12-region-methods"
+public long area()
+public int presentCount()
+public long requiredArea(Map<Integer, PresentShape> shapesByIndex)
+```
+
+`area` calcula el área disponible.
+
+`presentCount` calcula cuántos regalos se deben colocar en total.
+
+`requiredArea` calcula cuánta área ocupan todos los regalos requeridos.
 
 ---
 
-## Clases principales
+## `ChristmasTreeFarmReport`
 
-### `GridCell`
+El record `ChristmasTreeFarmReport` representa el informe completo del Día 12.
 
-Representa una celda de la cuadrícula.
+Está formado por:
 
-```java id="wz1nk1"
-package es.ulpgc.aoc2025.day12.common;
-
-public record GridCell(int row, int column) {
-}
+```java id="day12-report"
+public record ChristmasTreeFarmReport(
+        Map<Integer, PresentShape> shapesByIndex,
+        List<TreeRegionRequirement> regions
+)
 ```
-
-Se usa para representar las posiciones ocupadas por cada regalo.
-
----
-
-### `PresentFootprint`
-
-Representa la huella real de una forma de regalo.
-
-La huella contiene únicamente las celdas ocupadas por `#`.
-
-Por ejemplo, esta forma:
-
-```text id="2upg5m"
-###
-#..
-###
-```
-
-tiene siete celdas ocupadas.
-
-Responsabilidades:
-
-* almacenar las celdas ocupadas;
-* calcular el área real de la pieza;
-* calcular la anchura ocupada;
-* calcular la altura ocupada.
-
----
-
-### `PresentShape`
-
-Representa una forma de regalo leída desde el input.
-
-Responsabilidades:
-
-* almacenar el índice de la forma;
-* almacenar su representación visual;
-* calcular el área ocupada;
-* generar todas sus transformaciones posibles.
-
-Las transformaciones incluyen:
-
-```text id="y6wbbr"
-rotaciones
-volteos
-```
-
-Esto es necesario porque el enunciado permite colocar los regalos rotados o reflejados.
-
----
-
-### `TreeRegionRequirement`
-
-Representa una región bajo un árbol.
-
-Una región contiene:
-
-```text id="msplku"
-anchura
-altura
-cantidades de cada forma de regalo
-```
-
-Ejemplo:
-
-```text id="y5852c"
-12x5: 1 0 1 0 2 2
-```
-
-se modela como:
-
-```text id="62t6jq"
-width = 12
-height = 5
-quantities = [1, 0, 1, 0, 2, 2]
-```
-
-Responsabilidades:
-
-* calcular el área disponible de la región;
-* calcular cuántos regalos hay que colocar;
-* calcular el área total requerida por los regalos.
-
----
-
-### `ChristmasTreeFarmReport`
-
-Representa el informe completo del problema.
 
 Contiene:
 
-```text id="pv6zq3"
-formas de regalos
-regiones bajo árboles
+* Las formas de regalo indexadas por número.
+* Las regiones que hay que comprobar.
+
+Esta clase valida que:
+
+* El mapa de formas no sea `null`.
+* La lista de regiones no sea `null`.
+* Exista al menos una forma.
+
+Además, copia el mapa y la lista para evitar modificaciones externas.
+
+Su método principal es:
+
+```java id="day12-shape-by-index"
+public PresentShape shapeByIndex(int index)
 ```
 
-Responsabilidades:
-
-* almacenar las formas indexadas;
-* almacenar la lista de regiones;
-* permitir recuperar una forma por su índice.
+Este método devuelve una forma por índice y lanza una excepción si no existe.
 
 ---
 
-### `ChristmasTreeFarmReportParser`
+## `ChristmasTreeFarmReportParser`
 
-Convierte el input textual en un `ChristmasTreeFarmReport`.
+La clase `ChristmasTreeFarmReportParser` transforma las líneas del input en un `ChristmasTreeFarmReport`.
 
-Responsabilidades:
+El input tiene dos tipos de información:
 
-* leer las formas de regalos;
-* leer las regiones;
-* separar correctamente ambas secciones;
-* construir los objetos del dominio.
+1. Definiciones de formas.
+2. Requisitos de regiones.
 
----
+El parser usa expresiones regulares para detectar:
 
-### `PresentPackingAnalyzer`
-
-Resuelve la lógica principal de la parte 1.
-
-Esta clase decide si una región puede contener todos los regalos indicados.
-
-Su flujo general es:
-
-1. calcular el área total ocupada por los regalos;
-2. comparar esa área con el área disponible de la región;
-3. descartar rápidamente las regiones imposibles;
-4. comprobar si las piezas pueden colocarse sin solaparse;
-5. contar la región como válida si todos los regalos caben.
-
----
-
-### `Day12Part1Solver`
-
-Implementa la interfaz `PuzzleSolver`.
-
-Responsabilidades:
-
-* parsear el input;
-* recorrer todas las regiones;
-* usar `PresentPackingAnalyzer` para comprobar cada región;
-* contar cuántas regiones son válidas.
-
----
-
-## Estrategia de resolución
-
-### 1. Parsing del input
-
-El parser lee primero las formas.
-
-Cada forma tiene este patrón:
-
-```text id="5iv61y"
-índice:
-fila
-fila
-fila
-```
-
-Ejemplo:
-
-```text id="7wakmn"
-4:
-###
-#..
-###
-```
-
-Después lee las regiones:
-
-```text id="hshbol"
-anchuraxaltura: cantidades
-```
-
-Ejemplo:
-
-```text id="l0wsmv"
-4x4: 0 0 0 0 2 0
-```
-
----
-
-### 2. Cálculo de áreas
-
-Antes de intentar colocar regalos, se calcula el área total requerida.
-
-Si los regalos ocupan más celdas de las que tiene la región, la región se descarta inmediatamente.
-
-Ejemplo:
-
-```text id="on20c0"
-área requerida > área disponible → imposible
-```
-
-Este filtro es muy barato y elimina muchos casos imposibles.
-
----
-
-### 3. Transformaciones de las piezas
-
-Cada forma puede aparecer en distintas orientaciones.
-
-Para cada forma se generan sus posibles transformaciones:
-
-```text id="xzqsfs"
-rotación 0º
-rotación 90º
-rotación 180º
-rotación 270º
-volteos
-```
-
-Después se normalizan las coordenadas para que la pieza empiece en la posición `(0,0)`.
-
-Esto permite probar colocaciones dentro de una región de manera uniforme.
-
----
-
-### 4. Comprobación de colocación
-
-Para decidir si un conjunto de regalos cabe en una región, se prueban colocaciones válidas.
-
-Dos regalos son compatibles si sus celdas ocupadas no se solapan.
-
-La parte importante es que los puntos `.` de una forma no bloquean espacio.
-
-Por ejemplo:
-
-```text id="j65g8g"
-###
-#..
-###
-```
-
-no ocupa el hueco central ni el hueco derecho de la segunda fila.
-
-Otra pieza podría ocupar esas celdas si no pisa ningún `#`.
-
----
-
-### 5. Backtracking para regiones pequeñas
-
-En casos pequeños, como el ejemplo oficial, se puede hacer una búsqueda exacta.
-
-La búsqueda intenta colocar los regalos uno a uno.
-
-Si una colocación no funciona, retrocede y prueba otra.
-
-Este enfoque permite detectar casos donde:
-
-```text id="arm0n7"
-el área total parece suficiente,
-pero no existe una colocación válida
-```
-
-Esto ocurre en el tercer caso del ejemplo oficial.
-
----
-
-### 6. Casos grandes del input real
-
-En el input real, las regiones son mucho más grandes que las del ejemplo.
-
-Para estos casos se usan comprobaciones rápidas y criterios suficientes para decidir si los regalos caben sin tener que explorar todas las colocaciones posibles.
-
-Esto evita que el algoritmo tenga que hacer una búsqueda combinatoria enorme para cada región.
-
----
-
-## Diagrama de arquitectura
-
-```mermaid id="krr80r"
-classDiagram
-    class Day12Main {
-        +main(args: String[]) void$
-    }
-
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
-
-    class GridCell {
-        <<Record>>
-        +row() int
-        +column() int
-    }
-
-    class PresentFootprint {
-        <<Record>>
-        +cells() List~GridCell~
-        +area() int
-        +height() int
-        +width() int
-    }
-
-    class PresentShape {
-        <<Record>>
-        +index() int
-        +rows() List~String~
-        +area() int
-        +transformations() List~PresentFootprint~
-    }
-
-    class TreeRegionRequirement {
-        <<Record>>
-        +width() int
-        +height() int
-        +quantities() List~Integer~
-        +area() long
-        +presentCount() int
-        +requiredArea(shapesByIndex: Map~Integer, PresentShape~) long
-    }
-
-    class ChristmasTreeFarmReport {
-        <<Record>>
-        +shapesByIndex() Map~Integer, PresentShape~
-        +regions() List~TreeRegionRequirement~
-        +shapeByIndex(index: int) PresentShape
-    }
-
-    class ChristmasTreeFarmReportParser {
-        +parse(lines: List~String~) ChristmasTreeFarmReport
-    }
-
-    class PresentPackingAnalyzer {
-        +canFit(report: ChristmasTreeFarmReport, region: TreeRegionRequirement) boolean
-    }
-
-    class Day12Part1Solver {
-        -parser: ChristmasTreeFarmReportParser
-        -analyzer: PresentPackingAnalyzer
-        +solve(lines: List~String~) long
-    }
-
-    Day12Main ..> PuzzleSolver : usa
-    Day12Main ..> Day12Part1Solver : instancia
-
-    Day12Part1Solver ..|> PuzzleSolver : implementa
-    Day12Part1Solver --> ChristmasTreeFarmReportParser : usa
-    Day12Part1Solver --> PresentPackingAnalyzer : usa
-
-    ChristmasTreeFarmReportParser --> ChristmasTreeFarmReport : crea
-    ChristmasTreeFarmReportParser --> PresentShape : crea
-    ChristmasTreeFarmReportParser --> TreeRegionRequirement : crea
-
-    ChristmasTreeFarmReport --> PresentShape : contiene
-    ChristmasTreeFarmReport --> TreeRegionRequirement : contiene
-
-    PresentShape --> PresentFootprint : genera
-    PresentFootprint --> GridCell : contiene
-
-    PresentPackingAnalyzer --> ChristmasTreeFarmReport : analiza
-    PresentPackingAnalyzer --> TreeRegionRequirement : analiza
-```
-
----
-
-## Entrada del programa
-
-El archivo de entrada debe colocarse en:
-
-```text id="lbmrhn"
-src/main/resources/day12/input.txt
-```
-
-El formato general es:
-
-```text id="xb96q3"
+```text id="day12-shape-regex"
 0:
-forma
-
-1:
-forma
-
-...
-
-anchuraxaltura: cantidades
-anchuraxaltura: cantidades
-...
 ```
 
-Ejemplo completo:
+como cabecera de forma, y:
 
-```text id="u30cie"
-0:
-###
-##.
-##.
-
-1:
-###
-##.
-.##
-
-2:
-.##
-###
-##.
-
-3:
-##.
-###
-##.
-
-4:
-###
-#..
-###
-
-5:
-###
-.#.
-###
-
-4x4: 0 0 0 0 2 0
+```text id="day12-region-regex"
 12x5: 1 0 1 0 2 2
-12x5: 1 0 1 0 3 2
 ```
+
+como línea de región.
+
+Sus responsabilidades principales son:
+
+1. Recorrer las líneas del input.
+2. Ignorar líneas en blanco.
+3. Detectar cabeceras de forma.
+4. Leer las filas visuales de cada forma.
+5. Detectar líneas de región.
+6. Parsear anchura, altura y cantidades.
+7. Construir un `ChristmasTreeFarmReport`.
 
 ---
 
-## Ejecución en IntelliJ IDEA
+# Clases del paquete `day12.part1`
 
-Para ejecutar el día 12:
-
-1. abrir el archivo:
-
-```text id="com2s0"
-src/main/java/es/ulpgc/aoc2025/day12/Day12Main.java
-```
-
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text id="f95gi5"
-Run 'Day12Main.main()'
-```
-
-La salida tendrá este formato:
-
-```text id="m5v5lc"
-Day 12 - Part 1: 544
-```
+El paquete `day12.part1` contiene la solución específica de la primera parte.
 
 ---
 
-## Ejecución con Maven
+## `Day12Part1Solver`
 
-Para ejecutar los tests:
+La clase `Day12Part1Solver` resuelve la primera parte del Día 12.
 
-```bash id="nez09r"
-mvn test
-```
+Implementa la interfaz común `PuzzleSolver`.
 
----
+Su método `solve` realiza estos pasos:
 
-## Tests
-
-El proyecto incluye un test para la parte 1:
-
-```text id="e2l4pg"
-Day12Part1SolverTest.java
-```
-
-El test usa el ejemplo oficial:
-
-```text id="xikm4o"
-0:
-###
-##.
-##.
-
-1:
-###
-##.
-.##
-
-2:
-.##
-###
-##.
-
-3:
-##.
-###
-##.
-
-4:
-###
-#..
-###
-
-5:
-###
-.#.
-###
-
-4x4: 0 0 0 0 2 0
-12x5: 1 0 1 0 2 2
-12x5: 1 0 1 0 3 2
-```
-
-Resultado esperado:
-
-```text id="g23oee"
-2
-```
+1. Usa `ChristmasTreeFarmReportParser` para convertir el input en un `ChristmasTreeFarmReport`.
+2. Recorre todas las regiones del informe.
+3. Usa `PresentPackingAnalyzer` para comprobar si los regalos caben en cada región.
+4. Cuenta cuántas regiones son válidas.
+5. Devuelve el total.
 
 ---
 
-## Rendimiento
+## `PresentPackingAnalyzer`
 
-El problema puede volverse muy costoso si se intenta hacer una búsqueda exacta para todas las regiones.
+La clase `PresentPackingAnalyzer` contiene la lógica principal para comprobar si un conjunto de regalos puede caber en una región.
 
-Colocar muchas piezas en una cuadrícula grande genera un número enorme de combinaciones posibles.
+Su método principal es:
 
-Por eso la solución combina varias ideas:
-
-```text id="3lz910"
-filtro por área
-generación de transformaciones
-búsqueda exacta en casos pequeños
-criterios rápidos para regiones grandes
+```java id="day12-canfit"
+public boolean canFit(
+        ChristmasTreeFarmReport report,
+        TreeRegionRequirement region
+)
 ```
 
-Esto mantiene la solución práctica para el input real.
+El algoritmo combina varias estrategias:
+
+1. Comprobación rápida por área.
+2. Comprobación aproximada usando cajas envolventes.
+3. Búsqueda exacta en regiones pequeñas.
+
+Primero, si el área total requerida por los regalos supera el área de la región, devuelve `false`.
+
+Después, intenta una comprobación rápida usando cajas envolventes.
+
+Si la región es suficientemente pequeña, usa búsqueda exacta mediante máscaras de bits.
+
+La constante:
+
+```java id="day12-exact-limit"
+private static final int EXACT_SEARCH_MAX_CELLS = 63;
+```
+
+indica el límite máximo de celdas para usar búsqueda exacta con una máscara `long`.
+
+La búsqueda exacta funciona así:
+
+1. Expande la lista de regalos según las cantidades requeridas.
+2. Ordena los regalos para probar primero los que tienen menos colocaciones posibles.
+3. Genera todas las colocaciones posibles de cada forma dentro de la región.
+4. Representa cada colocación como una máscara de bits.
+5. Usa backtracking para intentar colocar regalos sin solapamientos.
+6. Guarda estados fallidos para no repetir búsquedas inútiles.
 
 ---
 
-## ¿Por qué no hay `part2`?
+# Clase del paquete `day12`
 
-Este día solo tiene una parte.
-
-Por coherencia con el resto del proyecto, se mantiene:
-
-```text id="s8y41t"
-part1
-```
-
-pero no se crea:
-
-```text id="eqxdj4"
-part2
-```
-
-La estructura final queda así:
-
-```text id="i57n0m"
-day12
-├── Day12Main.java
-├── common
-└── part1
-```
-
-Esto mantiene el patrón de los días anteriores sin añadir paquetes vacíos o innecesarios.
+El paquete `day12` contiene la clase principal del Día 12.
 
 ---
 
-## Convención para próximos días
+## `Day12Main`
 
-Cada día del Advent of Code seguirá la misma estructura base:
+La clase `Day12Main` es el punto de entrada para ejecutar la solución del Día 12.
 
-```text id="rhdzlt"
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
+El método `main` realiza los siguientes pasos:
 
-Cuando un día solo tenga una parte, se usará:
+1. Lee todas las líneas del archivo `src/main/resources/day12/input.txt`.
+2. Crea una instancia de `Day12Part1Solver`.
+3. Ejecuta el método `solve`.
+4. Guarda el resultado.
+5. Imprime el resultado por consola.
 
-```text id="k5tf6r"
-dayXX
-├── DayXXMain.java
-├── common
-└── part1
-```
-
-Cuando una clase pueda compartirse sin modificar su comportamiento, se coloca en `common`.
-
-Cuando una parte requiera modificar mucho el comportamiento de una clase existente, se crea una clase específica dentro de `part1` o `part2`.
-
-Cuando el cambio sea pequeño y coherente con la responsabilidad de la clase, se añade directamente a la clase común y se marca con un comentario.
-
-En este día:
-
-```text id="s32hc9"
-GridCell → common
-PresentFootprint → common
-PresentShape → common
-TreeRegionRequirement → common
-ChristmasTreeFarmReport → common
-ChristmasTreeFarmReportParser → common
-PresentPackingAnalyzer → específico de part1
-```
+A diferencia de otros días, aquí solo se ejecuta la parte 1 porque la parte 2 no contiene un nuevo problema computacional.
 
 ---
 
-## Conclusión
+# Interfaz común del proyecto
 
-La solución del día 12 modela el problema como una comprobación de empaquetado de piezas en una cuadrícula.
+El proyecto utiliza la interfaz común `PuzzleSolver`, ubicada en el paquete `aoc2025.common`.
 
-Las formas de los regalos se representan mediante sus celdas ocupadas, y se generan sus rotaciones y reflejos posibles.
+Esta interfaz define el contrato común para todos los solvers del Advent of Code:
 
-Cada región se analiza comprobando si el conjunto de regalos indicado puede caber dentro de sus dimensiones sin solapamientos.
+```java id="day12-puzzle-solver"
+long solve(List<String> lines);
+```
 
-Como este día solo tiene una parte, se mantiene una estructura sencilla con `common` y `part1`, sin crear un paquete `part2` innecesario.
+En el Día 12, `Day12Part1Solver` implementa esta interfaz.
+
+---
+
+# Fundamentos de diseño utilizados
+
+En la solución del Día 12 se utilizan los siguientes fundamentos de diseño:
+
+* Alta cohesión.
+* Bajo acoplamiento.
+* Modularidad.
+* Código expresivo.
+* Abstracción.
+* Encapsulación.
+* Diseño por contrato.
+* Inmutabilidad.
+* Modelado de cuadrículas.
+* Transformaciones geométricas.
+* Backtracking.
+* Memoización de estados fallidos.
+* Representación mediante máscaras de bits.
+* Optimización por poda.
+
+---
+
+# Principios de diseño aplicados
+
+En la solución del Día 12 se aplican los siguientes principios de diseño:
+
+* Principio de Responsabilidad Única, SRP.
+* Principio Abierto/Cerrado, OCP.
+* Principio de Sustitución de Liskov, LSP.
+* Principio de Segregación de Interfaces, ISP.
+* Principio de Inversión de Dependencias, DIP.
+* Composición sobre herencia.
+* Principio DRY.
+* Ley de Demeter.
+* Principio YAGNI.
+* Principio de mínima sorpresa.
+
+---
+
+# Patrones de diseño aplicados
+
+En la solución del Día 12 se utilizan los siguientes patrones de diseño:
+
+* Iterator.
+* Strategy.
+* Command, aplicado parcialmente.
+
+---
+
+# Patrones no aplicados
+
+En la solución del Día 12 no se aplican los siguientes patrones de diseño:
+
+* Singleton.
+* Factory Method.
+* Adapter.
+* Decorator.
+* Observer.
+* Template Method.
+* State.
+
+---
+
+# Conclusión
+
+La solución del Día 12 está organizada de forma clara y modular.
+
+El problema consiste en comprobar si distintos conjuntos de regalos con formas irregulares pueden colocarse dentro de regiones rectangulares. Para ello, el código modela las formas, genera transformaciones mediante rotaciones y reflejos, calcula áreas y realiza una búsqueda exacta cuando la región es suficientemente pequeña.
+
+El diseño separa correctamente el parseo, el modelo del informe, las formas de regalos, las regiones y la lógica de empaquetado. Esto permite que el código sea más fácil de entender, probar, mantener y defender en una explicación oral.
