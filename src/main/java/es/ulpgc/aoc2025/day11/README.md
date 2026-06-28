@@ -1,29 +1,12 @@
-# Advent of Code 2025 - Day 11: Reactor
+# Día 11: Reactor
 
-Este proyecto contiene la solución para el **Día 11** del Advent of Code 2025: **Reactor**.
+En el undécimo día del Advent of Code 2025, el problema se desarrolla en la zona del reactor de la fábrica. Los elfos están intentando que un nuevo rack de servidores se comunique correctamente con el reactor, pero sospechan que el fallo depende de ciertas rutas de datos entre dispositivos.
 
-El problema consiste en analizar una red de dispositivos conectados entre sí. Cada dispositivo tiene una o más salidas hacia otros dispositivos, y los datos solo pueden avanzar siguiendo esas salidas.
-
-La red puede interpretarse como un **grafo dirigido**:
-
-```text
-dispositivo → dispositivos de salida
-```
-
-El día está dividido en dos partes:
-
-* **Parte 1**: contar todos los caminos desde `you` hasta `out`.
-* **Parte 2**: contar todos los caminos desde `svr` hasta `out` que pasen obligatoriamente por `dac` y `fft`.
-
----
-
-## Descripción del problema
-
-Cada línea del input describe un dispositivo y sus salidas.
+El input del problema describe una red de dispositivos. Cada línea indica un dispositivo y la lista de dispositivos a los que envía sus salidas.
 
 Ejemplo:
 
-```text
+```text id="t2lejz"
 aaa: you hhh
 you: bbb ccc
 bbb: ddd eee
@@ -36,837 +19,405 @@ hhh: ccc fff iii
 iii: out
 ```
 
-La línea:
+Una línea como:
 
-```text
+```text id="5hjcka"
 bbb: ddd eee
 ```
 
-significa que el dispositivo `bbb` tiene dos salidas:
+significa que el dispositivo `bbb` tiene dos salidas: una hacia `ddd` y otra hacia `eee`.
 
-```text
-bbb → ddd
-bbb → eee
-```
-
-Los datos solo pueden avanzar en el sentido indicado. No pueden ir hacia atrás.
+Los datos solo fluyen hacia delante, desde un dispositivo hacia sus salidas. No pueden retroceder.
 
 ---
 
 ## Parte 1
 
-En la primera parte se deben contar todos los caminos posibles desde:
+En la primera parte, el objetivo es contar cuántos caminos distintos existen desde el dispositivo `you` hasta el dispositivo `out`.
 
-```text
-you
+Cada camino representa una posible ruta que pueden seguir los datos por la red de dispositivos.
+
+En el ejemplo oficial, los caminos desde `you` hasta `out` son:
+
+```text id="x915yo"
+you -> bbb -> ddd -> ggg -> out
+you -> bbb -> eee -> out
+you -> ccc -> ddd -> ggg -> out
+you -> ccc -> eee -> out
+you -> ccc -> fff -> out
 ```
 
-hasta:
+En total, hay `5` caminos.
 
-```text
-out
-```
+Con el input real, el resultado obtenido para la parte 1 fue:
 
-En el ejemplo oficial, los caminos son:
-
-```text
-you → bbb → ddd → ggg → out
-you → bbb → eee → out
-you → ccc → ddd → ggg → out
-you → ccc → eee → out
-you → ccc → fff → out
-```
-
-Por tanto, el resultado del ejemplo es:
-
-```text
-5
+```text id="q6yfzy"
+791
 ```
 
 ---
 
 ## Parte 2
 
-En la segunda parte cambia el origen y se añaden dos dispositivos obligatorios.
+En la segunda parte, los elfos descubren que la ruta problemática debe pasar por dos dispositivos concretos:
 
-Ahora se deben contar los caminos desde:
+* `dac`
+* `fft`
 
-```text
-svr
-```
+Ahora hay que contar los caminos desde `svr` hasta `out`, pero solo se consideran válidos los caminos que visitan ambos dispositivos obligatorios, en cualquier orden.
 
-hasta:
+Por tanto, un camino cuenta si:
 
-```text
-out
-```
+1. Empieza en `svr`.
+2. Termina en `out`.
+3. Pasa por `dac`.
+4. Pasa por `fft`.
 
-pero solo son válidos los caminos que visitan ambos dispositivos:
+Con el input real, el resultado obtenido para la parte 2 fue:
 
-```text
-dac
-fft
-```
-
-El orden no importa. Un camino puede pasar primero por `dac` y luego por `fft`, o primero por `fft` y luego por `dac`.
-
-En el ejemplo oficial de la parte 2, existen varios caminos desde `svr` hasta `out`, pero solo dos de ellos pasan por ambos dispositivos obligatorios.
-
-Resultado del ejemplo:
-
-```text
-2
+```text id="l94cxt"
+520476725037672
 ```
 
 ---
 
-## Diseño y arquitectura
+# Estructura del proyecto
 
-La solución mantiene la estructura modular usada en los días anteriores:
+La solución del Día 11 mantiene la misma estructura modular usada en los días anteriores:
 
-```text
+```text id="evuwxp"
 day11
 ├── Day11Main.java
 ├── common
+│   ├── DeviceNetwork.java
+│   └── DeviceNetworkParser.java
 ├── part1
+│   ├── Day11Part1Solver.java
+│   └── DevicePathCounter.java
 └── part2
+    ├── Day11Part2Solver.java
+    └── RequiredDevicePathCounter.java
 ```
 
-La parte común contiene el modelo de la red y el parser.
+La idea principal es separar:
 
-Las partes 1 y 2 tienen contadores separados porque la condición de búsqueda cambia bastante:
-
-```text
-Parte 1 → contar todos los caminos desde you hasta out
-Parte 2 → contar caminos desde svr hasta out que pasen por dac y fft
-```
-
-Por tanto, no se modifica el contador de la parte 1. Se crea un contador específico para la parte 2.
+* El punto de entrada del día.
+* Las clases comunes del dominio.
+* El parseo de la red de dispositivos.
+* La lógica específica de la parte 1.
+* La lógica específica de la parte 2.
+* El conteo de caminos simples.
+* El conteo de caminos con dispositivos obligatorios.
 
 ---
 
-## Decisión de diseño tras añadir la parte 2
+# Clases del paquete `day11.common`
 
-En la parte 1 se usa:
-
-```text
-DevicePathCounter
-```
-
-Esta clase cuenta caminos desde un dispositivo inicial hasta `out`.
-
-En la parte 2 se añade:
-
-```text
-RequiredDevicePathCounter
-```
-
-Esta clase cuenta caminos que, además de llegar a `out`, deben haber visitado una serie de dispositivos obligatorios.
-
-La parte 2 no es una pequeña modificación de la parte 1 porque ahora el estado de búsqueda no depende solo del dispositivo actual, sino también de los dispositivos obligatorios ya visitados.
-
-En la parte 1, el estado es:
-
-```text
-device
-```
-
-En la parte 2, el estado es:
-
-```text
-device + dispositivos obligatorios visitados
-```
-
-Por eso se crea una clase específica en `part2`.
+El paquete `day11.common` contiene las clases compartidas por ambas partes.
 
 ---
 
-## Principios aplicados
+## `DeviceNetwork`
 
-### Single Responsibility Principle, SRP
+El record `DeviceNetwork` representa la red dirigida de dispositivos.
 
-Cada clase tiene una responsabilidad clara:
+Internamente almacena un mapa:
 
-* `Day11Main`: ejecuta el día 11 y muestra los resultados.
-* `DeviceNetwork`: representa la red de dispositivos.
-* `DeviceNetworkParser`: convierte el input textual en una red de dispositivos.
-* `DevicePathCounter`: cuenta caminos simples desde un origen hasta `out`.
-* `RequiredDevicePathCounter`: cuenta caminos que deben pasar por dispositivos obligatorios.
-* `Day11Part1Solver`: resuelve únicamente la parte 1.
-* `Day11Part2Solver`: resuelve únicamente la parte 2.
+```java id="i7umug"
+public record DeviceNetwork(Map<String, List<String>> outputsByDevice)
+```
+
+La clave del mapa es el nombre de un dispositivo, y el valor es la lista de dispositivos a los que puede enviar datos.
+
+Por ejemplo:
+
+```text id="ydf8mu"
+bbb: ddd eee
+```
+
+se representa como una entrada donde `bbb` apunta a la lista `[ddd, eee]`.
+
+Esta clase valida que el mapa no sea `null` y lo copia usando `Map.copyOf`, evitando modificaciones externas.
+
+Su método principal es:
+
+```java id="k6gemr"
+public List<String> outputsOf(String device)
+```
+
+Este método devuelve las salidas de un dispositivo. Si el dispositivo no aparece en el mapa, devuelve una lista vacía.
 
 ---
 
-### Open/Closed Principle, OCP
+## `DeviceNetworkParser`
 
-La parte 2 se añade sin modificar la lógica específica de la parte 1.
+La clase `DeviceNetworkParser` transforma las líneas del input en un objeto `DeviceNetwork`.
 
-La clase de la parte 1 permanece estable:
+Su método principal es:
 
-```text
-DevicePathCounter
+```java id="f97wnj"
+public DeviceNetwork parse(List<String> lines)
 ```
 
-La parte 2 introduce una clase nueva:
+El parser realiza los siguientes pasos:
 
-```text
-RequiredDevicePathCounter
-```
+1. Recorre las líneas del input.
+2. Ignora líneas en blanco.
+3. Divide cada línea por `:`.
+4. Extrae el nombre del dispositivo.
+5. Extrae la lista de salidas.
+6. Construye un mapa de dispositivos a salidas.
+7. Crea un `DeviceNetwork`.
 
-Así, el código existente queda cerrado a modificaciones innecesarias, pero el sistema sigue abierto a extensión.
+También valida que cada línea tenga el formato correcto y que el nombre del dispositivo no esté vacío.
 
 ---
 
-### Dependency Inversion Principle, DIP
+# Clases del paquete `day11.part1`
 
-Los solvers implementan la interfaz común:
+El paquete `day11.part1` contiene la solución específica de la primera parte.
 
-```java
-PuzzleSolver
+---
+
+## `Day11Part1Solver`
+
+La clase `Day11Part1Solver` resuelve la primera parte del Día 11.
+
+Implementa la interfaz común `PuzzleSolver`.
+
+Su método `solve` realiza estos pasos:
+
+1. Usa `DeviceNetworkParser` para convertir el input en un `DeviceNetwork`.
+2. Usa `DevicePathCounter`.
+3. Cuenta los caminos desde `you` hasta `out`.
+4. Devuelve el resultado.
+
+La clase define como dispositivo inicial:
+
+```java id="fxi2j0"
+private static final String START_DEVICE = "you";
 ```
 
-Esto permite tratarlos de forma uniforme desde el `Main`:
+---
 
-```java
+## `DevicePathCounter`
+
+La clase `DevicePathCounter` contiene la lógica para contar todos los caminos desde un dispositivo inicial hasta `out`.
+
+Su método principal es:
+
+```java id="v5h9ah"
+public long countPathsFrom(String startDevice, DeviceNetwork network)
+```
+
+El algoritmo funciona de forma recursiva:
+
+1. Si el dispositivo actual es `out`, devuelve `1`.
+2. Si ya se conoce el número de caminos desde ese dispositivo, usa el valor guardado en memoria.
+3. Si el dispositivo está siendo visitado, se detecta un ciclo y se lanza una excepción.
+4. Recorre todas las salidas del dispositivo actual.
+5. Suma los caminos que existen desde cada salida hasta `out`.
+6. Guarda el resultado en una tabla de memoización.
+7. Devuelve el total.
+
+La memoización evita recalcular varias veces el número de caminos desde un mismo dispositivo.
+
+---
+
+# Clases del paquete `day11.part2`
+
+El paquete `day11.part2` contiene la solución específica de la segunda parte.
+
+---
+
+## `Day11Part2Solver`
+
+La clase `Day11Part2Solver` resuelve la segunda parte del Día 11.
+
+También implementa la interfaz `PuzzleSolver`.
+
+Su método `solve` realiza estos pasos:
+
+1. Usa `DeviceNetworkParser` para convertir el input en un `DeviceNetwork`.
+2. Define como inicio el dispositivo `svr`.
+3. Define como obligatorios los dispositivos `dac` y `fft`.
+4. Usa `RequiredDevicePathCounter`.
+5. Cuenta los caminos desde `svr` hasta `out` que visitan ambos dispositivos.
+6. Devuelve el resultado.
+
+La clase define:
+
+```java id="c7757s"
+private static final String START_DEVICE = "svr";
+```
+
+y:
+
+```java id="wlmv97"
+private static final Set<String> REQUIRED_DEVICES = Set.of(
+        "dac",
+        "fft"
+);
+```
+
+---
+
+## `RequiredDevicePathCounter`
+
+La clase `RequiredDevicePathCounter` contiene la lógica para contar caminos que deben visitar ciertos dispositivos obligatorios.
+
+Su método principal es:
+
+```java id="ghywjh"
+public long countPathsFrom(
+        String startDevice,
+        DeviceNetwork network,
+        Set<String> requiredDevices
+)
+```
+
+A diferencia de la parte 1, aquí no basta con saber en qué dispositivo estamos. También hay que saber qué dispositivos obligatorios ya han sido visitados.
+
+Para eso, la clase usa un estado de búsqueda formado por:
+
+* El dispositivo actual.
+* El conjunto de dispositivos obligatorios ya visitados.
+
+Internamente define el record:
+
+```java id="kucegz"
+private record SearchState(String device, RequiredDeviceState requiredDeviceState)
+```
+
+También define el record:
+
+```java id="c2po78"
+private record RequiredDeviceState(Set<String> requiredDevices, Set<String> visitedRequiredDevices)
+```
+
+Este estado permite saber si un camino ya ha pasado por `dac` y `fft`.
+
+El algoritmo funciona así:
+
+1. Empieza en `svr`.
+2. Actualiza el estado si el dispositivo actual es obligatorio.
+3. Si llega a `out`, comprueba si ya se visitaron todos los dispositivos obligatorios.
+4. Si se visitaron todos, cuenta el camino como válido.
+5. Si no, el camino no cuenta.
+6. Usa memoización para evitar recalcular estados repetidos.
+7. Usa detección de ciclos para evitar recorridos infinitos.
+
+---
+
+# Clase del paquete `day11`
+
+El paquete `day11` contiene la clase principal del Día 11.
+
+---
+
+## `Day11Main`
+
+La clase `Day11Main` es el punto de entrada para ejecutar la solución completa del Día 11.
+
+El método `main` realiza los siguientes pasos:
+
+1. Lee todas las líneas del archivo `src/main/resources/day11/input.txt`.
+2. Crea una instancia de `Day11Part1Solver`.
+3. Crea una instancia de `Day11Part2Solver`.
+4. Ejecuta el método `solve` de ambos solvers.
+5. Guarda los resultados.
+6. Imprime los resultados por consola.
+
+Esta clase utiliza la interfaz `PuzzleSolver` para referenciar ambos solvers:
+
+```java id="su45cj"
 PuzzleSolver part1Solver = new Day11Part1Solver();
 PuzzleSolver part2Solver = new Day11Part2Solver();
 ```
 
-El punto de entrada no necesita conocer los detalles internos del algoritmo de cada parte.
-
 ---
 
-### DRY
+# Interfaz común del proyecto
 
-El parser y el modelo de red se comparten entre ambas partes:
+El proyecto utiliza la interfaz común `PuzzleSolver`, ubicada en el paquete `aoc2025.common`.
 
-```text
-DeviceNetwork
-DeviceNetworkParser
-```
+Esta interfaz define el contrato común para todos los solvers del Advent of Code:
 
-La lógica específica de cada parte se mantiene separada:
-
-```text
-DevicePathCounter         → parte 1
-RequiredDevicePathCounter → parte 2
-```
-
-Así se evita duplicar el parsing o mezclar reglas distintas en una misma clase.
-
----
-
-## Estructura del proyecto
-
-```text
-src
-├── main
-│   ├── java
-│   │   └── es
-│   │       └── ulpgc
-│   │           └── aoc2025
-│   │               ├── common
-│   │               │   └── PuzzleSolver.java
-│   │               │
-│   │               └── day11
-│   │                   ├── Day11Main.java
-│   │                   │
-│   │                   ├── common
-│   │                   │   ├── DeviceNetwork.java
-│   │                   │   └── DeviceNetworkParser.java
-│   │                   │
-│   │                   ├── part1
-│   │                   │   ├── Day11Part1Solver.java
-│   │                   │   └── DevicePathCounter.java
-│   │                   │
-│   │                   └── part2
-│   │                       ├── Day11Part2Solver.java
-│   │                       └── RequiredDevicePathCounter.java
-│   │
-│   └── resources
-│       └── day11
-│           └── input.txt
-│
-└── test
-    └── java
-        └── es
-            └── ulpgc
-                └── aoc2025
-                    └── day11
-                        ├── part1
-                        │   └── Day11Part1SolverTest.java
-                        └── part2
-                            └── Day11Part2SolverTest.java
-```
-
----
-
-## Paquetes principales
-
-### `es.ulpgc.aoc2025.common`
-
-Contiene código común a todo el proyecto Advent of Code.
-
-Actualmente contiene:
-
-```text
-PuzzleSolver.java
-```
-
-Esta interfaz define el contrato común de todos los solvers:
-
-```java
+```java id="ph184p"
 long solve(List<String> lines);
 ```
 
----
-
-### `es.ulpgc.aoc2025.day11`
-
-Contiene el punto de entrada específico del día 11:
-
-```text
-Day11Main.java
-```
-
-Esta clase se encarga de:
-
-1. leer el archivo de entrada;
-2. crear el solver de la parte 1;
-3. crear el solver de la parte 2;
-4. ejecutar ambos solvers;
-5. mostrar los resultados por consola.
+En el Día 11, tanto `Day11Part1Solver` como `Day11Part2Solver` implementan esta interfaz.
 
 ---
 
-### `es.ulpgc.aoc2025.day11.common`
+# Fundamentos de diseño utilizados
 
-Contiene las clases comunes del dominio del día 11.
+En la solución del Día 11 se utilizan los siguientes fundamentos de diseño:
 
-Estas clases se reutilizan en ambas partes.
-
----
-
-### `es.ulpgc.aoc2025.day11.part1`
-
-Contiene la solución específica de la primera parte.
-
----
-
-### `es.ulpgc.aoc2025.day11.part2`
-
-Contiene la solución específica de la segunda parte.
-
----
-
-## Clases principales
-
-### `DeviceNetwork`
-
-Representa la red de dispositivos.
-
-```java
-package es.ulpgc.aoc2025.day11.common;
-
-import java.util.List;
-import java.util.Map;
-
-public record DeviceNetwork(Map<String, List<String>> outputsByDevice) {
-
-    public DeviceNetwork {
-        if (outputsByDevice == null) {
-            throw new IllegalArgumentException("Outputs by device cannot be null");
-        }
-
-        outputsByDevice = Map.copyOf(outputsByDevice);
-    }
-
-    public List<String> outputsOf(String device) {
-        return outputsByDevice.getOrDefault(device, List.of());
-    }
-}
-```
-
-Responsabilidades:
-
-* almacenar las salidas de cada dispositivo;
-* permitir consultar a qué dispositivos puede enviar datos un dispositivo dado.
+* Alta cohesión.
+* Bajo acoplamiento.
+* Modularidad.
+* Código expresivo.
+* Abstracción.
+* Encapsulación.
+* Diseño por contrato.
+* Inmutabilidad.
+* Modelado de grafos dirigidos.
+* Recursividad.
+* Memoización.
+* Detección de ciclos.
+* Búsqueda con estado.
 
 ---
 
-### `DeviceNetworkParser`
+# Principios de diseño aplicados
 
-Convierte las líneas del input en un `DeviceNetwork`.
+En la solución del Día 11 se aplican los siguientes principios de diseño:
 
-```java
-package es.ulpgc.aoc2025.day11.common;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-public class DeviceNetworkParser {
-
-    public DeviceNetwork parse(List<String> lines) {
-        Map<String, List<String>> outputsByDevice = new HashMap<>();
-
-        for (String line : lines) {
-            if (line.isBlank()) {
-                continue;
-            }
-
-            parseConnectionLine(line.trim(), outputsByDevice);
-        }
-
-        return new DeviceNetwork(outputsByDevice);
-    }
-
-    private void parseConnectionLine(
-            String line,
-            Map<String, List<String>> outputsByDevice
-    ) {
-        String[] parts = line.split(":");
-
-        if (parts.length != 2) {
-            throw new IllegalArgumentException("Invalid device line: " + line);
-        }
-
-        String device = parts[0].trim();
-        String outputsText = parts[1].trim();
-
-        if (device.isEmpty()) {
-            throw new IllegalArgumentException("Device name cannot be empty");
-        }
-
-        outputsByDevice.put(device, parseOutputs(outputsText));
-    }
-
-    private List<String> parseOutputs(String outputsText) {
-        if (outputsText.isBlank()) {
-            return List.of();
-        }
-
-        String[] rawOutputs = outputsText.split("\\s+");
-        List<String> outputs = new ArrayList<>();
-
-        for (String output : rawOutputs) {
-            outputs.add(output.trim());
-        }
-
-        return outputs;
-    }
-}
-```
-
-Responsabilidades:
-
-* ignorar líneas vacías;
-* separar cada línea por `:`;
-* extraer el dispositivo origen;
-* extraer los dispositivos de salida;
-* crear la red dirigida.
+* Principio de Responsabilidad Única, SRP.
+* Principio Abierto/Cerrado, OCP.
+* Principio de Sustitución de Liskov, LSP.
+* Principio de Segregación de Interfaces, ISP.
+* Principio de Inversión de Dependencias, DIP.
+* Composición sobre herencia.
+* Principio DRY.
+* Ley de Demeter.
+* Principio YAGNI.
+* Principio de mínima sorpresa.
 
 ---
 
-### `DevicePathCounter`
+# Patrones de diseño aplicados
 
-Resuelve la lógica de la parte 1.
+En la solución del Día 11 se utilizan los siguientes patrones de diseño:
 
-Su algoritmo es:
-
-1. empezar desde `you`;
-2. recorrer las salidas del dispositivo actual;
-3. si se llega a `out`, contar un camino;
-4. usar memoización para no recalcular caminos desde el mismo dispositivo.
-
-La relación recursiva es:
-
-```text
-paths(device) = suma de paths(output)
-paths(out) = 1
-```
-
-Ejemplo:
-
-```java
-paths("you") = paths("bbb") + paths("ccc")
-```
+* Iterator.
+* Strategy.
+* Command, aplicado parcialmente.
 
 ---
 
-### `RequiredDevicePathCounter`
+# Patrones no aplicados
 
-Resuelve la lógica de la parte 2.
+En la solución del Día 11 no se aplican los siguientes patrones de diseño:
 
-Su algoritmo es:
-
-1. empezar desde `svr`;
-2. avanzar por las salidas del dispositivo actual;
-3. mantener el estado de qué dispositivos obligatorios ya se visitaron;
-4. al llegar a `out`, contar el camino solo si se han visitado todos los dispositivos obligatorios;
-5. usar memoización sobre el estado completo.
-
-El estado de búsqueda es:
-
-```text
-dispositivo actual
-+
-dispositivos obligatorios visitados
-```
-
-Por ejemplo:
-
-```text
-ccc, sin haber visitado dac ni fft
-ccc, habiendo visitado dac
-ccc, habiendo visitado fft
-ccc, habiendo visitado dac y fft
-```
-
-Estos estados no son equivalentes, por lo que deben memorizarse por separado.
+* Singleton.
+* Factory Method.
+* Adapter.
+* Decorator.
+* Observer.
+* Template Method.
+* State.
 
 ---
 
-## Estrategia de resolución
+# Conclusión
 
-### Parte 1: DFS con memoización
+La solución del Día 11 está organizada de forma clara y modular.
 
-Se usa una búsqueda en profundidad desde `you`.
+La primera parte cuenta todos los caminos desde `you` hasta `out`.
 
-Cuando se alcanza `out`, se devuelve `1`.
+La segunda parte cuenta los caminos desde `svr` hasta `out`, pero solo aquellos que visitan tanto `dac` como `fft`.
 
-Cuando un dispositivo no tiene camino hacia `out`, devuelve `0`.
-
-Para evitar trabajo repetido, se guarda en un mapa cuántos caminos hay desde cada dispositivo hasta `out`.
-
-Ejemplo conceptual:
-
-```text
-memo["eee"] = 1
-memo["fff"] = 1
-memo["ggg"] = 1
-memo["ddd"] = 1
-memo["bbb"] = 2
-memo["ccc"] = 3
-memo["you"] = 5
-```
-
----
-
-### Parte 2: DFS con estado extendido
-
-En la parte 2 no basta con saber en qué dispositivo estamos.
-
-También hay que saber si el camino ya ha pasado por:
-
-```text
-dac
-fft
-```
-
-Por eso, al visitar un dispositivo, se actualiza el estado.
-
-Si el dispositivo actual es `dac`, se marca `dac` como visitado.
-
-Si el dispositivo actual es `fft`, se marca `fft` como visitado.
-
-Al llegar a `out`, el camino solo cuenta si ambos están visitados.
-
----
-
-## Diagrama de arquitectura
-
-```mermaid
-classDiagram
-    class Day11Main {
-        +main(args: String[]) void$
-    }
-
-    class PuzzleSolver {
-        <<Interface>>
-        +solve(lines: List~String~) long
-    }
-
-    class DeviceNetwork {
-        <<Record>>
-        +outputsByDevice() Map~String, List~String~~
-        +outputsOf(device: String) List~String~
-    }
-
-    class DeviceNetworkParser {
-        +parse(lines: List~String~) DeviceNetwork
-    }
-
-    class DevicePathCounter {
-        +countPathsFrom(startDevice: String, network: DeviceNetwork) long
-    }
-
-    class RequiredDevicePathCounter {
-        +countPathsFrom(startDevice: String, network: DeviceNetwork, requiredDevices: Set~String~) long
-    }
-
-    class Day11Part1Solver {
-        -parser: DeviceNetworkParser
-        -pathCounter: DevicePathCounter
-        +solve(lines: List~String~) long
-    }
-
-    class Day11Part2Solver {
-        -parser: DeviceNetworkParser
-        -pathCounter: RequiredDevicePathCounter
-        +solve(lines: List~String~) long
-    }
-
-    Day11Main ..> PuzzleSolver : usa
-    Day11Main ..> Day11Part1Solver : instancia
-    Day11Main ..> Day11Part2Solver : instancia
-
-    Day11Part1Solver ..|> PuzzleSolver : implementa
-    Day11Part2Solver ..|> PuzzleSolver : implementa
-
-    DeviceNetworkParser --> DeviceNetwork : crea
-
-    Day11Part1Solver --> DeviceNetworkParser : usa
-    Day11Part1Solver --> DevicePathCounter : usa
-    DevicePathCounter --> DeviceNetwork : consulta
-
-    Day11Part2Solver --> DeviceNetworkParser : usa
-    Day11Part2Solver --> RequiredDevicePathCounter : usa
-    RequiredDevicePathCounter --> DeviceNetwork : consulta
-```
-
----
-
-## Entrada del programa
-
-El archivo de entrada debe colocarse en:
-
-```text
-src/main/resources/day11/input.txt
-```
-
-El formato debe ser:
-
-```text
-device: output1 output2 output3
-device: output1 output2
-device: output1
-...
-```
-
-Ejemplo:
-
-```text
-you: bbb ccc
-bbb: ddd eee
-ccc: ddd eee fff
-ddd: ggg
-eee: out
-fff: out
-ggg: out
-```
-
----
-
-## Ejecución en IntelliJ IDEA
-
-Para ejecutar el día 11:
-
-1. abrir el archivo:
-
-```text
-src/main/java/es/ulpgc/aoc2025/day11/Day11Main.java
-```
-
-2. pulsar el botón verde junto al método `main`;
-
-3. seleccionar:
-
-```text
-Run 'Day11Main.main()'
-```
-
-La salida tendrá este formato:
-
-```text
-Day 11 - Part 1: <resultado_parte_1>
-Day 11 - Part 2: <resultado_parte_2>
-```
-
----
-
-## Ejecución con Maven
-
-Para ejecutar los tests:
-
-```bash
-mvn test
-```
-
----
-
-## Tests
-
-El proyecto incluye tests separados para cada parte:
-
-```text
-Day11Part1SolverTest.java
-Day11Part2SolverTest.java
-```
-
----
-
-### Test de la parte 1
-
-El test de la parte 1 usa el ejemplo oficial:
-
-```text
-aaa: you hhh
-you: bbb ccc
-bbb: ddd eee
-ccc: ddd eee fff
-ddd: ggg
-eee: out
-fff: out
-ggg: out
-hhh: ccc fff iii
-iii: out
-```
-
-Resultado esperado:
-
-```text
-5
-```
-
----
-
-### Test de la parte 2
-
-El test de la parte 2 usa el ejemplo oficial:
-
-```text
-svr: aaa bbb
-aaa: fft
-fft: ccc
-bbb: tty
-tty: ccc
-ccc: ddd eee
-ddd: hub
-hub: fff
-eee: dac
-dac: fff
-fff: ggg hhh
-ggg: out
-hhh: out
-```
-
-Resultado esperado:
-
-```text
-2
-```
-
----
-
-## Rendimiento
-
-El número de caminos puede crecer muy rápido en un grafo dirigido.
-
-Por eso es importante usar memoización.
-
-Sin memoización, se podrían recalcular los mismos subcaminos muchas veces.
-
-Con memoización, cada estado se calcula una vez:
-
-```text
-Parte 1:
-device
-
-Parte 2:
-device + requiredDevicesVisited
-```
-
-En la parte 2, como solo hay dos dispositivos obligatorios (`dac` y `fft`), el número de estados posibles por dispositivo es pequeño.
-
----
-
-## Nota sobre ciclos
-
-El enunciado indica que los datos fluyen a través de las salidas y no hacia atrás, pero aun así la implementación puede incluir una protección contra ciclos.
-
-Si durante una búsqueda se vuelve a visitar el mismo estado antes de terminarlo, se lanza una excepción indicando que existe un ciclo.
-
-Esto ayuda a detectar errores en el input o en el parser.
-
----
-
-## Nota sobre valores grandes
-
-El contador usa `long`.
-
-Si el número de caminos superase el límite de `long`, habría que cambiar el contador para usar:
-
-```text
-BigInteger
-```
-
-Sin embargo, mientras el proyecto mantenga la interfaz común:
-
-```java
-long solve(List<String> lines);
-```
-
-se mantiene `long` para ser consistente con el resto de días.
-
----
-
-## Convención para próximos días
-
-Cada día del Advent of Code seguirá la misma estructura:
-
-```text
-dayXX
-├── DayXXMain.java
-├── common
-├── part1
-└── part2
-```
-
-Ejemplo para el día 12:
-
-```text
-day12
-├── Day12Main.java
-├── common
-├── part1
-└── part2
-```
-
-Cuando una clase pueda compartirse sin modificar su comportamiento, se coloca en `common`.
-
-Cuando una parte requiera modificar mucho el comportamiento de una clase existente, se crea una clase específica dentro de `part1` o `part2`.
-
-Cuando el cambio sea pequeño y coherente con la responsabilidad de la clase, se añade directamente a la clase común y se marca con un comentario.
-
-En este día:
-
-```text
-DeviceNetwork → common
-DeviceNetworkParser → common
-DevicePathCounter → específico de part1
-RequiredDevicePathCounter → específico de part2
-```
-
----
-
-## Conclusión
-
-La solución del día 11 se basa en modelar la entrada como un grafo dirigido.
-
-La parte 1 cuenta todos los caminos desde `you` hasta `out` usando DFS con memoización.
-
-La parte 2 amplía la búsqueda añadiendo estado sobre si ya se han visitado `dac` y `fft`.
-
-Como la condición de validez cambia de forma importante, se mantiene el contador de la parte 1 separado y se crea un contador específico para la parte 2. Esto permite conservar una estructura modular, expresiva y fácil de extender.
+El diseño separa correctamente el parseo, el modelo de la red de dispositivos, el conteo de caminos simples y el conteo de caminos con estado adicional. Esto permite que el código sea fácil de entender, probar, mantener y defender en una explicación oral.
