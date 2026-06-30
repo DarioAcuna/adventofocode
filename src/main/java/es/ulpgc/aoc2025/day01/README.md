@@ -294,8 +294,7 @@ En la solución del Día 1 se utilizan los siguientes fundamentos de diseño:
 * Modularidad.
 * Código expresivo.
 * Abstracción.
-* Encapsulación.
-* Diseño por contrato.
+
 
 ## Principios de diseño aplicados
 
