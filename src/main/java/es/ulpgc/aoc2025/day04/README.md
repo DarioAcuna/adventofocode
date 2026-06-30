@@ -407,6 +407,3 @@ En la solución del Día 4 no se aplican los siguientes patrones de diseño:
 * Observer.
 
 ---
-
-
-El diseño separa correctamente el input, el modelo del dominio, la lógica de cada parte y la simulación mutable. Esto permite que el código sea más fácil de entender, probar, mantener y defender en una explicación oral.
