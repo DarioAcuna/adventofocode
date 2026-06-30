@@ -332,9 +332,6 @@ En la solución del Día 2 se utilizan los siguientes fundamentos de diseño:
 * Modularidad.
 * Código expresivo.
 * Abstracción.
-* Encapsulación.
-* Diseño por contrato.
-* Inmutabilidad.
 
 ---
 
@@ -348,7 +345,6 @@ En la solución del Día 2 se utilizan los siguientes fundamentos de diseño:
 * Principio DRY.
 * Ley de Demeter.
 * Principio YAGNI.
-* Principio de mínima sorpresa.
 
 ---
 
