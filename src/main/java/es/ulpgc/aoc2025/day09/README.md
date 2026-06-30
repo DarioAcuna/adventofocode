@@ -419,12 +419,6 @@ En la solución del Día 9 se utilizan los siguientes fundamentos de diseño:
 * Modularidad.
 * Código expresivo.
 * Abstracción.
-* Encapsulación.
-* Diseño por contrato.
-* Inmutabilidad.
-* Geometría computacional.
-* Validación de regiones.
-* Optimización por poda.
 
 ---
 
@@ -437,7 +431,6 @@ En la solución del Día 9 se aplican los siguientes principios de diseño:
 * Principio de Sustitución de Liskov, LSP.
 * Principio de Segregación de Interfaces, ISP.
 * Principio de Inversión de Dependencias, DIP.
-* Composición sobre herencia.
 * Principio DRY.
 * Ley de Demeter.
 * Principio YAGNI.
@@ -450,8 +443,6 @@ En la solución del Día 9 se aplican los siguientes principios de diseño:
 En la solución del Día 9 se utilizan los siguientes patrones de diseño:
 
 * Iterator.
-* Strategy.
-* Command, aplicado parcialmente.
 
 ---
 
@@ -464,16 +455,5 @@ En la solución del Día 9 no se aplican los siguientes patrones de diseño:
 * Adapter.
 * Decorator.
 * Observer.
-* Template Method.
 
 ---
-
-# Conclusión
-
-La solución del Día 9 está organizada de forma clara y modular.
-
-La primera parte busca el mayor rectángulo posible usando cualquier par de baldosas rojas como esquinas opuestas.
-
-La segunda parte añade la restricción de que el rectángulo completo debe estar contenido dentro de la región roja/verde. Para ello, se modela la región válida y se comprueba si cada rectángulo candidato pertenece a ella.
-
-El diseño separa correctamente el parseo, el modelo de posiciones, el cálculo de áreas, la representación de rectángulos y la validación geométrica de la región. Esto permite que el código sea fácil de entender, probar, mantener y defender en una explicación oral.
