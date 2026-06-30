@@ -411,7 +411,7 @@ En la solución del Día 6 se aplican los siguientes principios de diseño:
 En la solución del Día 6 se utilizan los siguientes patrones de diseño:
 
 * Iterator.
-* Factory Method, aplicado de forma simple mediante `MathOperation.fromSymbol`.
+* Factory Method, aplicado mediante `MathOperation.fromSymbol`.
 
 ---
 
