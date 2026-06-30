@@ -462,4 +462,3 @@ En la solución del Día 8 no se aplican los siguientes patrones de diseño:
 * Observer.
 
 ---
-El diseño separa correctamente el parseo, el modelo de posiciones, la generación de conexiones, la estructura de circuitos y la lógica específica de cada parte. Esto permite que el código sea fácil de entender, probar, mantener y defender en una explicación oral.
