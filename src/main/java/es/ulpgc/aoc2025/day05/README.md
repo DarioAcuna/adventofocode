@@ -437,15 +437,3 @@ En la solución del Día 5 no se aplican los siguientes patrones de diseño:
 * Observer.
 
 ---
-
-# Conclusión
-
-La solución del Día 5 está organizada de forma clara y modular.
-
-La primera parte cuenta cuántos IDs disponibles son frescos, comprobando si pertenecen a alguno de los rangos frescos.
-
-La segunda parte calcula cuántos IDs distintos son considerados frescos por la unión de todos los rangos, ignorando la lista de IDs disponibles.
-
-El diseño separa correctamente el input, el modelo del dominio, la lógica de rangos y la resolución de cada parte. La clase `FreshIngredientRanges` es clave porque fusiona rangos solapados y permite realizar consultas eficientes mediante búsqueda binaria.
-
-Gracias a esta estructura, el código es más fácil de entender, probar, mantener y defender en una explicación oral.
