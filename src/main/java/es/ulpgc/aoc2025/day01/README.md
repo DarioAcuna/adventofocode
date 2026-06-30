@@ -99,15 +99,6 @@ Sus responsabilidades principales son:
 
 Esta clase separa la lógica de parseo de la lógica del dial. Gracias a eso, `CircularDial` no necesita saber cómo viene escrito el input, sino que solo trabaja con objetos `Rotation` ya construidos.
 
-### Resumen general
-
-En conjunto, estas clases separan claramente las responsabilidades del problema:
-
-* `CircularDial` modela el estado y comportamiento del dial.
-* `Direction` define los sentidos posibles de giro.
-* `Rotation` representa una instrucción ya interpretada.
-* `RotationParser` convierte el texto del input en objetos del dominio.
-
 Esta separación hace que el código sea más claro, más fácil de probar y más mantenible, ya que cada clase tiene una responsabilidad concreta dentro de la solución.
 
 ## Clases de los paquetes `day01.part1` y `day01.part2`
@@ -159,21 +150,6 @@ Esto permite resolver correctamente casos donde una rotación larga puede pasar 
 
 ---
 
-### Diferencia principal entre ambas clases
-
-La diferencia entre `Day01Part1Solver` y `Day01Part2Solver` está en qué se considera una aparición válida del número `0`.
-
-En la primera parte, solo se cuenta si el dial termina en `0` después de ejecutar una instrucción completa.
-
-En la segunda parte, se cuenta cada vez que un clic individual deja el dial apuntando a `0`, aunque la rotación termine en otra posición.
-
-Por tanto:
-
-* `Day01Part1Solver` cuenta posiciones finales.
-* `Day01Part2Solver` cuenta cruces por `0` durante el movimiento completo.
-
----
-
 ## Clase del paquete `day01`
 
 El paquete `day01` contiene la clase principal del Día 1. Esta clase actúa como punto de entrada para ejecutar la solución completa del ejercicio.
@@ -202,32 +178,6 @@ PuzzleSolver part2Solver = new Day01Part2Solver();
 
 Esto permite que ambas partes sigan la misma estructura: reciben una lista de líneas y devuelven un resultado numérico.
 
-### Propósito dentro del proyecto
-
-`Day01Main` funciona como clase lanzadora del Día 1. Es decir, conecta el input real del problema con las clases que contienen la lógica de resolución.
-
-Mientras que las clases `Day01Part1Solver` y `Day01Part2Solver` se encargan de resolver cada parte, `Day01Main` se encarga de preparar la ejecución y mostrar los resultados.
-
-Por tanto, sus responsabilidades son:
-
-* Localizar y leer el archivo de entrada.
-* Instanciar los solvers de ambas partes.
-* Ejecutar las soluciones.
-* Mostrar los resultados finales.
-
-### Resumen general
-
-La clase `Day01Main` separa la ejecución del programa de la lógica del problema. No contiene reglas específicas sobre cómo se mueve el dial ni cómo se calcula la contraseña. Esa lógica queda delegada en los solvers y en las clases del paquete `day01.common`.
-
-Gracias a esta separación, el código queda mejor organizado:
-
-* `Day01Main` ejecuta el programa.
-* `Day01Part1Solver` resuelve la primera parte.
-* `Day01Part2Solver` resuelve la segunda parte.
-* Las clases de `day01.common` modelan el dominio del problema.
-
-Esta estructura hace que el proyecto sea más claro, modular y fácil de mantener.
-
 ## Interfaz común del proyecto
 
 Además de las clases específicas del Día 1, el proyecto incluye una interfaz común ubicada en el paquete `aoc2025.common`. Esta interfaz se utiliza como base para todos los días del Advent of Code.
@@ -253,32 +203,6 @@ PuzzleSolver part1Solver = new Day01Part1Solver();
 PuzzleSolver part2Solver = new Day01Part2Solver();
 ```
 
-### Propósito dentro del proyecto
-
-La interfaz `PuzzleSolver` actúa como una abstracción común para todos los resolutores del Advent of Code.
-
-Sus responsabilidades son:
-
-* Definir una estructura común para resolver puzzles.
-* Separar la ejecución del programa de la implementación concreta de cada solución.
-* Permitir que cada parte de cada día tenga su propia clase solver.
-* Facilitar la reutilización de código en las clases principales de cada día.
-* Hacer que el proyecto sea más escalable y organizado.
-
-Gracias a esta interfaz, añadir nuevos días o nuevas partes resulta más sencillo, ya que basta con crear una nueva clase que implemente `PuzzleSolver` y defina su propia lógica dentro del método `solve`.
-
-### Resumen general
-
-`PuzzleSolver` no resuelve ningún problema por sí misma. Su función es definir un contrato común que todas las soluciones deben respetar.
-
-Esto mejora la organización del proyecto porque permite que todos los días del Advent of Code sigan una misma estructura:
-
-* Una clase principal que lee el input y ejecuta los solvers.
-* Una clase solver para la parte 1.
-* Una clase solver para la parte 2.
-* Una interfaz común que garantiza que todos los solvers puedan ejecutarse de la misma manera.
-
-En resumen, `PuzzleSolver` aporta abstracción, uniformidad y escalabilidad al proyecto.
 
 ## Fundamentos, principios y patrones de diseño aplicados
 
