@@ -374,6 +374,5 @@ Aunque algunos patrones aparecen en los materiales teóricos, no todos son neces
 - No se aplica `Adapter`.
 - No se aplica `Decorator`.
 - No se aplica `Observer`.
-- No se aplica `Template Method` como patrón formal.
 
 ---
