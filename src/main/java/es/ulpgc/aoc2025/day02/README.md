@@ -345,7 +345,6 @@ En la solución del Día 2 se utilizan los siguientes fundamentos de diseño:
 * Principio de Sustitución de Liskov, LSP.
 * Principio de Segregación de Interfaces, ISP.
 * Principio de Inversión de Dependencias, DIP.
-* Composición sobre herencia.
 * Principio DRY.
 * Ley de Demeter.
 * Principio YAGNI.
@@ -356,7 +355,6 @@ En la solución del Día 2 se utilizan los siguientes fundamentos de diseño:
 # Patrones de diseño aplicados
 
 * Iterator.
-* Strategy.
 
 ---
 ## Patrones no aplicados
@@ -374,18 +372,3 @@ No se aplica `Observer`, porque no hay objetos observadores suscritos a cambios 
 
 No se aplica `Template Method`, aunque las dos partes tienen una estructura parecida. Ambos solvers parsean el input, generan IDs inválidos y suman el resultado, pero no existe una clase abstracta común que defina el esqueleto del algoritmo.
 
-
----
-# Conclusión
-
-La solución del Día 2 está organizada en clases con responsabilidades bien separadas.
-
-El paquete `day02.common` contiene los elementos compartidos por ambas partes: los rangos de IDs, el parser del input y la interfaz común para generar IDs inválidos.
-
-La parte 1 utiliza una estrategia centrada en detectar IDs formados por un bloque repetido exactamente dos veces.
-
-La parte 2 utiliza otra estrategia más general, capaz de detectar IDs formados por un bloque repetido al menos dos veces.
-
-La clase `Day02Main` actúa como punto de entrada y coordina la ejecución de ambas partes sin contener lógica específica del problema.
-
-Gracias a esta estructura, el código es claro, modular, extensible y fácil de mantener.
